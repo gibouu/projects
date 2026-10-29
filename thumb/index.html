@@ -2,155 +2,545 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Thumb</title>
-<meta name="description" content="A native iPhone agent that works through websites in your own logged-in sessions, learns each site, and makes the phone call when a website isn't enough.">
+<meta name="description" content="Thumb is an iPhone agent that taps through your web tasks in your own logged-in sessions, learns each site, and makes the call when a website can't help.">
+<meta name="theme-color" content="#F3EBDD">
+<link rel="icon" href="img/icon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="img/app-icon.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400;600&display=swap">
-<link rel="stylesheet" href="../style.css">
-<style>:root { --accent: #e5543b; }</style>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=Raleway:wght@500;600;700&display=swap">
+<style>
+/* Thumb's own tokens, from the app's theme.css */
+:root {
+  --paper: #F3EBDD;
+  --paper-2: #EAE0CE;
+  --card: #F7F1E6;
+  --ink: #1C2E7A;
+  --ink-soft: #4A5793;
+  --rust: #962619;
+  --rust-soft: #C9573D;
+  --sun: #F29966;
+  --line: rgba(28, 46, 122, .18);
+  --radius: 10px;
+  --title: "DM Serif Display", Georgia, serif;
+  --text: "Raleway", -apple-system, "Helvetica Neue", sans-serif;
+  --grain: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='160' height='160'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='3' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 0.11  0 0 0 0 0.18  0 0 0 0 0.48  0 0 0 .07 0'/></filter><rect width='100%' height='100%' filter='url(%23n)'/></svg>");
+  color-scheme: light;
+}
+* { box-sizing: border-box; }
+html { scroll-behavior: smooth; -webkit-text-size-adjust: 100%; overflow-x: clip; }
+body {
+  margin: 0;
+  background: var(--paper) var(--grain);
+  color: var(--ink);
+  font: 500 17px/1.55 var(--text);
+  -webkit-font-smoothing: antialiased;
+  overflow-x: clip;
+}
+h1, h2, h3 { font-family: var(--title); font-weight: 400; margin: 0; line-height: 1.08; }
+p { margin: 0; }
+a { color: inherit; }
+img { display: block; max-width: 100%; }
+.soft { color: var(--ink-soft); }
+:focus-visible { outline: 2px solid var(--rust); outline-offset: 3px; border-radius: 6px; }
+
+.wrap { max-width: 1120px; margin: 0 auto; padding: 0 24px; }
+
+/* ── Hero: the app's home landscape, with the phone standing on the horizon ── */
+.hero { position: relative; padding: 40px 0 0; overflow: hidden; }
+.brand { display: flex; align-items: center; gap: 12px; }
+.brand img { width: 44px; height: 44px; border-radius: 11px; box-shadow: 0 1px 0 var(--line); }
+.brand span { font-family: var(--title); font-size: 26px; }
+.hero-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 40px; align-items: center; margin-top: 36px; }
+.hero h1 { font-size: clamp(52px, 7vw, 92px); letter-spacing: -.01em; text-wrap: balance; }
+.hero .lede { font-size: clamp(19px, 2.1vw, 23px); line-height: 1.45; margin: 22px 0 30px; max-width: 30ch; color: var(--ink-soft); }
+.hero .lede b { color: var(--ink); font-weight: 600; }
+.cta { display: inline-flex; align-items: center; gap: 10px; padding: 14px 22px 14px 18px; border-radius: 999px; background: var(--ink); color: var(--paper); font-weight: 700; font-size: 16px; text-decoration: none; }
+.cta svg { width: 14px; height: 14px; }
+.cta:hover { background: #24398f; }
+.cta-note { display: block; margin-top: 12px; font-size: 14px; color: var(--ink-soft); }
+.hero-facts { display: flex; gap: 28px; flex-wrap: wrap; margin: 44px 0 56px; font-size: 14px; color: var(--ink-soft); }
+.hero-facts b { display: block; font-family: var(--title); font-weight: 400; font-size: 21px; color: var(--ink); }
+
+.scene { position: relative; height: 640px; }
+.scene svg.land { position: absolute; left: -60px; right: -60px; bottom: 0; width: calc(100% + 120px); height: 340px; }
+.scene .phone { position: absolute; left: 34%; bottom: 52px; transform: translateX(-50%); width: 262px; }
+
+/* ── The phone frame (used in the hero and the sticky walk-through) ── */
+.phone { aspect-ratio: 599 / 1300; padding: 9px; border-radius: 44px; background: #10173d; box-shadow: 0 30px 50px -28px rgba(28, 46, 122, .55), inset 0 0 0 2px #2b3466; }
+.phone .glass { position: relative; width: 100%; height: 100%; border-radius: 36px; overflow: hidden; background: var(--paper); }
+.phone .glass img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; transition: opacity .35s ease; }
+
+/* ── Walk-through: sticky phone, steps scroll beside it ── */
+.walk { padding: 96px 0 40px; border-top: 2px dotted var(--line); }
+.walk-head { max-width: 640px; }
+.walk-head h2 { font-size: clamp(36px, 5vw, 56px); }
+.walk-head p { margin-top: 14px; font-size: 19px; color: var(--ink-soft); }
+.walk-grid { display: grid; grid-template-columns: 300px 1fr; gap: 72px; margin-top: 56px; }
+.walk-phone { position: sticky; top: 7vh; align-self: start; }
+.walk-phone .phone { width: 300px; }
+.pager { display: flex; gap: 7px; justify-content: center; margin-top: 18px; }
+.pager i { width: 9px; height: 9px; border-radius: 50%; background: var(--line); transition: background .25s; }
+.pager i.on { background: var(--rust); }
+.steps { list-style: none; margin: 0; padding: 0; }
+.step { min-height: 74vh; display: flex; flex-direction: column; justify-content: center; max-width: 470px; opacity: .38; transition: opacity .3s; }
+.step.on { opacity: 1; }
+.step .n { font-weight: 700; font-size: 14px; color: var(--rust); margin-bottom: 10px; }
+.step h3 { font-size: clamp(30px, 3.6vw, 42px); margin-bottom: 14px; }
+.step p { font-size: 18px; color: var(--ink-soft); }
+.step .shot { display: none; }
+
+/* ── Tasks: the app's home tiles ── */
+.tasks { padding: 96px 0; border-top: 2px dotted var(--line); }
+.tasks h2 { font-size: clamp(36px, 5vw, 56px); max-width: 16ch; }
+.tiles { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; margin-top: 44px; }
+.tile { position: relative; overflow: hidden; background: var(--card); border: 1px solid var(--line); border-radius: 18px; padding: 22px 22px 24px; min-height: 250px; display: flex; flex-direction: column; }
+.tile .ico { width: 52px; height: 52px; border-radius: 50%; background: var(--paper-2); display: grid; place-items: center; }
+.tile .ico svg { width: 24px; height: 24px; stroke: var(--ink); fill: none; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+.tile h3 { font-size: 27px; margin: 34px 0 8px; }
+.tile p { font-size: 15.5px; line-height: 1.5; color: var(--ink-soft); margin-bottom: 18px; }
+.tile .m { margin-top: auto; padding-top: 12px; border-top: 2px dotted var(--line); font-size: 14px; font-weight: 600; color: var(--ink); }
+.tile.lead { background: #333f86; border-color: #333f86; color: var(--paper); }
+.tile.lead .ico { background: rgba(243, 235, 221, .14); }
+.tile.lead .ico svg { stroke: var(--paper); }
+.tile.lead p { color: rgba(243, 235, 221, .78); }
+.tile.lead .m { color: var(--paper); border-top-color: rgba(243, 235, 221, .25); }
+.tile.lead .corner { position: absolute; top: -6px; right: -6px; width: 104px; height: 104px; }
+
+/* ── Learning: the signature figure ── */
+.learn { padding: 96px 0; background: var(--paper-2) var(--grain); border-top: 2px dotted var(--line); border-bottom: 2px dotted var(--line); }
+.learn h2 { font-size: clamp(36px, 5vw, 56px); max-width: 15ch; }
+.learn .intro { margin-top: 16px; font-size: 19px; color: var(--ink-soft); max-width: 46ch; }
+.fig { display: grid; grid-template-columns: 1.25fr 1fr; gap: 28px; margin-top: 48px; }
+.panel { background: var(--card); border: 1px solid var(--line); border-radius: 18px; padding: 26px; }
+.panel h3 { font-size: 24px; }
+.panel .sub { margin-top: 6px; font-size: 15px; color: var(--ink-soft); }
+.panel svg { display: block; width: 100%; height: auto; margin-top: 18px; }
+.panel svg text { font-family: var(--text); fill: var(--ink-soft); font-size: 13px; font-weight: 600; }
+.panel svg text.big { font-family: var(--title); fill: var(--ink); font-size: 26px; font-weight: 400; }
+.panel svg text.rust { fill: var(--rust); }
+.sun-fig { display: grid; grid-template-columns: 1fr 1fr; align-items: end; gap: 8px; margin-top: 18px; text-align: center; }
+.sun-fig svg { margin: 0 auto; }
+.sun-fig b { display: block; font-family: var(--title); font-weight: 400; font-size: 26px; }
+.sun-fig span { display: block; font-size: 14px; color: var(--ink-soft); line-height: 1.4; }
+.time-row { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px; margin-top: 28px; }
+.time-row div { border-top: 2px dotted var(--line); padding-top: 12px; }
+.time-row b { display: block; font-family: var(--title); font-weight: 400; font-size: 34px; line-height: 1; }
+.time-row span { display: block; margin-top: 6px; font-size: 14px; color: var(--ink-soft); line-height: 1.4; }
+.footnote { margin-top: 28px; font-size: 14px; color: var(--ink-soft); max-width: 70ch; }
+
+/* ── Inside: architecture in the app's language ── */
+.inside { padding: 96px 0 72px; }
+.inside h2 { font-size: clamp(36px, 5vw, 56px); max-width: 17ch; }
+.inside .intro { margin-top: 16px; font-size: 19px; color: var(--ink-soft); max-width: 50ch; }
+.arch { margin-top: 44px; background: var(--card); border: 1px solid var(--line); border-radius: 18px; padding: 16px; overflow-x: auto; }
+.arch svg { display: block; width: 100%; min-width: 760px; height: auto; }
+.arch .zone { fill: none; stroke: var(--ink); stroke-opacity: .35; stroke-width: 2; stroke-dasharray: 0 7; stroke-linecap: round; }
+.arch .box { fill: var(--paper); stroke: var(--line); stroke-width: 1.2; }
+.arch .fill { fill: #333f86; }
+.arch .t { font: 400 19px var(--title); fill: var(--ink); }
+.arch .s { font: 500 13px var(--text); fill: var(--ink-soft); }
+.arch .tw { font: 400 19px var(--title); fill: var(--paper); }
+.arch .sw { font: 500 13px var(--text); fill: rgba(243, 235, 221, .8); }
+.arch .z { font: 700 13px var(--text); fill: var(--rust); }
+.arch .ln { stroke: var(--ink-soft); stroke-width: 1.6; fill: none; }
+.arch .loop { stroke: var(--rust); stroke-width: 2; fill: none; stroke-dasharray: 0 6; stroke-linecap: round; }
+.arch .lb { font: italic 600 13px var(--text); fill: var(--rust); }
+.rules { display: grid; grid-template-columns: repeat(3, 1fr); gap: 28px; margin-top: 40px; }
+.rules h3 { font-size: 22px; margin-bottom: 8px; }
+.rules p { font-size: 15.5px; color: var(--ink-soft); }
+.stack { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 40px; list-style: none; padding: 0; }
+.stack li { padding: 7px 14px; border-radius: 999px; background: var(--paper-2); font-size: 14px; font-weight: 600; }
+
+/* ── Ending: the horizon again ── */
+.end { position: relative; padding: 72px 0 110px; border-top: 2px dotted var(--line); text-align: center; overflow: hidden; }
+.end h2 { font-size: clamp(36px, 5vw, 56px); }
+.end p { margin: 14px auto 28px; font-size: 18px; color: var(--ink-soft); max-width: 40ch; }
+.end svg.land { display: block; width: 100%; max-width: 900px; height: 150px; margin: 48px auto 0; }
+.end .foot { font-size: 14px; color: var(--ink-soft); margin: 22px auto 0; }
+
+/* ── The pill tab bar, as in the app ── */
+.tabbar { position: fixed; left: 50%; bottom: max(14px, env(safe-area-inset-bottom)); transform: translateX(-50%); z-index: 20; display: flex; gap: 4px; padding: 5px; border-radius: 999px; background: rgba(250, 245, 236, .92); border: 1px solid var(--line); box-shadow: 0 10px 26px -14px rgba(28, 46, 122, .45); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); }
+.tabbar a { display: flex; flex-direction: column; align-items: center; gap: 2px; min-width: 76px; padding: 7px 12px 6px; border-radius: 999px; font-size: 12px; font-weight: 700; text-decoration: none; color: var(--ink); }
+.tabbar a svg { width: 20px; height: 20px; }
+.tabbar a.on { background: var(--paper-2); }
+
+@media (max-width: 900px) {
+  .hero-grid { grid-template-columns: 1fr; gap: 0; }
+  .scene { height: 470px; }
+  .scene .phone { width: 200px; }
+  .walk-grid { grid-template-columns: 1fr; gap: 0; margin-top: 24px; }
+  .walk-phone { display: none; }
+  .step { min-height: 0; opacity: 1; padding: 36px 0; border-bottom: 2px dotted var(--line); max-width: none; }
+  .step .shot { display: block; width: 210px; margin: 22px auto 0; }
+  .tiles { grid-template-columns: 1fr 1fr; }
+  .fig { grid-template-columns: 1fr; }
+  .scene .phone { left: 50%; }
+  .rules { grid-template-columns: 1fr; gap: 22px; }
+}
+@media (max-width: 560px) {
+  .wrap { padding: 0 18px; }
+  .tiles { grid-template-columns: 1fr; }
+  .tile { min-height: 0; }
+  .tile h3 { margin-top: 22px; }
+  .time-row b { font-size: 26px; }
+  .panel { padding: 22px 18px; }
+  .panel svg text { font-size: 19px; }
+  .panel svg text.big { font-size: 34px; }
+  .panel svg text.subl { display: none; }
+  .sun-fig svg { width: 100%; max-width: 150px; height: auto; }
+  .sun-fig b { font-size: 21px; }
+  .tabbar a { min-width: 0; padding: 7px 10px 6px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
+  .phone .glass img, .step, .pager i { transition: none; }
+}
+</style>
 </head>
 <body>
-<div class="wrap">
-  <header class="top">
-    <a href="../">Projects by Gibril Bachouchi</a>
-    <nav><a href="../understudy/">Understudy</a><a href="./" aria-current="page">Thumb</a><a href="../more/">MORE</a></nav>
-  </header>
 
-  <div class="hero">
-    <span class="eyebrow"><span class="dot"></span>AI agent · Oct 22, 2026</span>
-    <h1>Thumb</h1>
-    <p class="lede">Your phone, on autopilot. Thumb taps through your web tasks while you sit on the train, learns each site, and makes the call when a website can't help.</p>
-    <div class="actions">
-      <a class="btn primary" href="https://gibouu.github.io/thumb/">Try the click-through demo</a>
-    </div>
-    <div class="meta">
-      <div><b>Built for</b>Future Founders: Data-Centric Agents, Aiven x ElevenLabs</div>
-      <div><b>Built in</b>one day</div>
-      <div><b>Runs on</b>a native iPhone app + an agent API on Aiven</div>
+<header class="hero" id="top">
+  <div class="wrap">
+    <div class="brand"><img src="img/app-icon.png" alt="" width="44" height="44"><span>Thumb</span></div>
+    <div class="hero-grid">
+      <div>
+        <h1>Your phone, on autopilot.</h1>
+        <p class="lede"><b>Thumb taps through your web tasks while you sit on the train,</b> learns each site, and makes the call when a website can't help.</p>
+        <a class="cta" href="https://gibouu.github.io/thumb/"><svg viewBox="0 0 14 14" aria-hidden="true"><path d="M3 1.5v11l9-5.5z" fill="currentColor"/></svg>Click through a workflow</a>
+        <span class="cta-note">Flat hunting, start to finish, on real screens from the app.</span>
+        <div class="hero-facts">
+          <div><b>One day</b>to build, at Future Founders: Data-Centric Agents, by Aiven and ElevenLabs</div>
+          <div><b>Native iPhone</b>with an agent API on Aiven</div>
+        </div>
+      </div>
+      <div class="scene" aria-hidden="true">
+        <svg class="land" id="heroLand" viewBox="0 0 800 340" preserveAspectRatio="xMidYMax slice"></svg>
+        <div class="phone"><div class="glass"><img src="img/step1.jpg" alt=""></div></div>
+      </div>
     </div>
   </div>
+</header>
 
-  <section>
-    <h2>The idea</h2>
-    <p class="big">The first time is slow and costs a model. Every time after should be nearly free.</p>
-    <p>Thumb runs websites inside its own browser, in your logged-in sessions, and works through them one action at a time. It reads the page directly, its visible text and every button, link and field, instead of guessing from screenshots. Because it owns the browser it sees every action and its result, and that trace is what it learns from: a run that ends on a real receipt becomes the route for that site, and the next run replays it.</p>
-  </section>
-
-  <section>
-    <h2>What it does</h2>
-    <ol class="steps">
-      <li><b>Flat hunting</b><span>Reads every listing site, removes duplicates, scores each flat against your profile and applies to the ones you approve.</span></li>
-      <li><b>Job applications</b><span>Says in one line whether a job fits, then fills the whole multi-step application.</span></li>
-      <li><b>The weekly website</b><span>Watches for the moment booking opens on an old club website and books a place.</span></li>
-      <li><b>Teach Thumb</b><span>Do a task once in Thumb's browser. It records the steps, never passwords, and turns them into a tile it replays.</span></li>
-      <li><b>Call the landlord</b><span>An ElevenLabs voice agent says it is your AI assistant, asks your questions and files the answers.</span></li>
-      <li><b>Self-repair</b><span>When a site changes, the model takes over only the changed steps, and the route is rewritten.</span></li>
-    </ol>
-  </section>
-
-  <section>
-    <h2>Architecture</h2>
-    <div class="figure">
-      <svg viewBox="0 0 960 400" role="img" aria-labelledby="arch-t">
-        <title id="arch-t">Thumb architecture: the iPhone app injects a frame agent into its web view, which talks to an agent API on Aiven Runtime backed by PostgreSQL, ClickHouse and Valkey, with gpt-5-mini choosing actions and ElevenLabs placing calls.</title>
-        <defs>
-          <marker id="head" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path class="mh" d="M0 0L10 5L0 10z"/></marker>
-          <marker id="headA" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path class="mha" d="M0 0L10 5L0 10z"/></marker>
-        </defs>
-
-        <rect class="box" x="20" y="148" width="150" height="64" rx="10"/>
-        <text class="t" x="36" y="175">Websites</text><text class="s" x="36" y="195">listings, jobs, clubs</text>
-
-        <rect class="zone" x="200" y="24" width="280" height="350" rx="16"/>
-        <text class="z" x="220" y="52">iPhone · SwiftUI</text>
-        <rect class="box" x="220" y="68" width="240" height="56" rx="10"/>
-        <text class="t" x="236" y="92">Home tiles</text><text class="s" x="236" y="111">flats · jobs · booking · teach · memory</text>
-        <rect class="box" x="220" y="148" width="240" height="56" rx="10"/>
-        <text class="t" x="236" y="172">WKWebView</text><text class="s" x="236" y="191">your logged-in sessions</text>
-        <rect class="hot" x="220" y="224" width="240" height="72" rx="10"/>
-        <text class="w" x="236" y="250">FrameAgent.js</text>
-        <text class="ws" x="236" y="270">injected in every frame</text>
-        <text class="ws" x="236" y="287">snapshot · act · recorder</text>
-        <rect class="box" x="220" y="312" width="240" height="48" rx="10"/>
-        <text class="t" x="236" y="341">Call screen</text>
-
-        <path class="arrow" d="M172 180H218" marker-start="url(#head)"/>
-        <path class="arrow" d="M340 204V222"/>
-
-        <rect class="zone" x="520" y="24" width="420" height="262" rx="16"/>
-        <text class="z" x="540" y="52">Aiven</text>
-        <rect class="hot" x="540" y="68" width="180" height="128" rx="10"/>
-        <text class="w" x="556" y="94">Agent API</text>
-        <text class="ws" x="556" y="114">Node 24 on Aiven Runtime</text>
-        <text class="ws" x="556" y="142">warm: replay the route</text>
-        <text class="ws" x="556" y="160">cold: ask the model</text>
-        <text class="ws" x="556" y="178">for one action</text>
-
-        <rect class="box" x="750" y="68" width="170" height="56" rx="10"/>
-        <text class="t" x="766" y="92">PostgreSQL</text><text class="s" x="766" y="111">profile · runs · routes</text>
-        <rect class="box" x="750" y="140" width="170" height="56" rx="10"/>
-        <text class="t" x="766" y="164">ClickHouse</text><text class="s" x="766" y="183">every step · learning curve</text>
-        <rect class="box" x="750" y="212" width="170" height="56" rx="10"/>
-        <text class="t" x="766" y="236">Valkey</text><text class="s" x="766" y="255">live stream to the phone</text>
-
-        <path class="arrow" d="M720 96H748"/>
-        <path class="arrow" d="M835 124V138"/>
-        <path class="arrow" d="M720 170C735 200 735 240 748 240"/>
-
-        <path class="loop" d="M462 246C500 246 500 130 538 130"/>
-        <path class="loop" d="M538 176C505 176 505 276 462 276"/>
-        <text class="lbl" x="476" y="120">snapshot</text>
-        <text class="lbl" x="476" y="300">next action</text>
-
-        <rect class="box" x="540" y="312" width="180" height="56" rx="10"/>
-        <text class="t" x="556" y="336">OpenAI gpt-5-mini</text><text class="s" x="556" y="355">one action at a time</text>
-        <path class="arrow" d="M630 196V310"/>
-
-        <rect class="box" x="750" y="312" width="170" height="56" rx="10"/>
-        <text class="t" x="766" y="336">ElevenLabs</text><text class="s" x="766" y="355">voice agent</text>
-        <path class="arrow" d="M460 344H490V388H835V370"/>
-      </svg>
-    </div>
-    <p class="caption">One action per step (click, type, select, navigate, scroll, extract, done or fail), chosen by a forced function call. Anything that sends something waits for your approval, and an application only counts when the page shows a receipt.</p>
-  </section>
-
-  <section>
-    <h2>Measured</h2>
-    <div class="stats">
-      <div class="stat"><div class="n">1 call</div><div class="d">for a repeat flat application on a learned route, against 7 to 8 the first time</div></div>
-      <div class="stat"><div class="n">−97%</div><div class="d">tokens per application once the route is learned: about 330 instead of 9,000 to 12,000</div></div>
-      <div class="stat"><div class="n">16 / 16</div><div class="d">repeat applications confirmed by a receipt on the page</div></div>
-      <div class="stat"><div class="n">3.3 s</div><div class="d">from booking opening to slot 1 of 20, with zero model calls</div></div>
-    </div>
-    <p class="note">Runs of 22 October 2026 with real gpt-5-mini calls on Aiven. After a deliberate form redesign the route repaired itself: 7 → 1 → 5 → 1 model calls. The listing demo sites were built for the demo with made-up people; real-site runs were read-only or approved.</p>
-  </section>
-
-  <section>
-    <h2>Data on Aiven</h2>
-    <div class="cols">
-      <div>
-        <h3>PostgreSQL, the memory</h3>
-        <ul><li>Profile and trusted tasks, listings with freshness, runs, every step with its source and tokens</li><li>Learned routes, with drift and repairs, and taught skills</li></ul>
+<main>
+  <section class="walk" id="walk">
+    <div class="wrap">
+      <div class="walk-head">
+        <h2>One flat hunt, start to finish.</h2>
+        <p>These are the app's own screens, recorded on an iPhone.</p>
       </div>
-      <div>
-        <h3>ClickHouse and Valkey</h3>
-        <ul><li>ClickHouse holds every step, synced every 10 seconds, and computes the learning curve</li><li>Valkey streams new listings and openings: the phone reacts within about 2 seconds</li></ul>
+      <div class="walk-grid">
+        <div class="walk-phone" aria-hidden="true">
+          <div class="phone"><div class="glass" id="walkGlass"></div></div>
+          <div class="pager" id="pager"></div>
+        </div>
+        <ol class="steps" id="steps">
+          <li class="step" data-img="img/step1.jpg"><span class="n">Home</span><h3>What should Thumb do?</h3><p>Home is a set of tasks. Teach Thumb sits first; flat hunting and appointments are examples. Anything you teach becomes a new tile.</p><img class="shot phone" src="img/step1.jpg" alt="Thumb's home screen with task tiles" loading="lazy"></li>
+          <li class="step" data-img="img/step2.jpg"><span class="n">Set up</span><h3>Tell it once.</h3><p>Your details, the message you'd send, what you want and which websites to watch.</p><img class="shot phone" src="img/step2.jpg" alt="The flat hunting set-up screen" loading="lazy"></li>
+          <li class="step" data-img="img/step3.jpg"><span class="n">Read</span><h3>Thumb reads each site.</h3><p>It opens every listing site in the phone's own browser and reads it the way you would. No API and no site-specific code.</p><img class="shot phone" src="img/step3.jpg" alt="Thumb reading a listing site" loading="lazy"></li>
+          <li class="step" data-img="img/step4.jpg"><span class="n">Choose</span><h3>Five flats fit.</h3><p>Duplicates removed, every flat scored against your profile. One tap applies to all of them, once you approve.</p><img class="shot phone" src="img/step4.jpg" alt="Five scored flats ready to apply" loading="lazy"></li>
+          <li class="step" data-img="img/step5.jpg"><span class="n">Apply</span><h3>It works on its own.</h3><p>The fingertip taps through each landlord's form: your details, a message written for that flat. A route chip means a step replayed from what Thumb already learned.</p><img class="shot phone" src="img/step5.jpg" alt="Thumb filling a landlord's contact form" loading="lazy"></li>
+          <li class="step" data-img="img/step6.jpg"><span class="n">Confirm</span><h3>Only counts with a receipt.</h3><p>A flat is marked applied only when the site shows a confirmation.</p><img class="shot phone" src="img/step6.jpg" alt="Applications confirmed by receipts" loading="lazy"></li>
+          <li class="step" data-img="img/call.jpg"><span class="n">Call</span><h3>And it makes the call.</h3><p>When a listing only has a phone number, an ElevenLabs voice agent calls. It says up front that it is your AI assistant.</p><img class="shot phone" src="img/call.jpg" alt="Thumb's call screen" loading="lazy"></li>
+          <li class="step" data-img="img/call-notes.jpg"><span class="n">File</span><h3>Call notes, filed.</h3><p>The answers to your questions go back into memory, next to the flat.</p><img class="shot phone" src="img/call-notes.jpg" alt="Notes from the call, saved with the flat" loading="lazy"></li>
+        </ol>
       </div>
     </div>
   </section>
 
-  <section>
-    <h2>Stack</h2>
-    <ul class="chips">
-      <li>SwiftUI</li><li>WKWebView</li><li>Node 24 + Express</li><li>Aiven Runtime</li><li>Aiven for PostgreSQL</li><li>Aiven for ClickHouse</li><li>Aiven for Valkey</li><li>OpenAI gpt-5-mini</li><li>ElevenLabs</li>
-    </ul>
+  <section class="tasks" id="tasks">
+    <div class="wrap">
+      <h2>What should Thumb do?</h2>
+      <div class="tiles">
+        <article class="tile lead">
+          <svg class="corner" id="corner" viewBox="0 0 104 104" aria-hidden="true"></svg>
+          <div class="ico"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="8"/><circle cx="12" cy="12" r="3" fill="currentColor"/></svg></div>
+          <h3>Teach Thumb</h3>
+          <p>Do any task once in Thumb's browser. It records the steps, never passwords, and turns them into a tile it replays.</p>
+          <div class="m">A recorded booking replayed in 37 ms, 0 model calls</div>
+        </article>
+        <article class="tile">
+          <div class="ico"><svg viewBox="0 0 24 24"><path d="M4 11l8-6 8 6v8a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1z"/><path d="M10 20v-6h4v6"/></svg></div>
+          <h3>Flat hunting</h3>
+          <p>Reads every listing site, removes duplicates, scores each flat against your profile and applies to the ones you approve.</p>
+          <div class="m">11 s on a repeat, against 56 s by hand</div>
+        </article>
+        <article class="tile">
+          <div class="ico"><svg viewBox="0 0 24 24"><rect x="4" y="7" width="16" height="12" rx="2"/><path d="M9 7V5h6v2"/></svg></div>
+          <h3>Job applications</h3>
+          <p>Says in one line whether a job fits, then fills the whole multi-step application.</p>
+          <div class="m">Fit judged in 0.4 s per job</div>
+        </article>
+        <article class="tile">
+          <div class="ico"><svg viewBox="0 0 24 24"><rect x="4" y="5" width="16" height="15" rx="2"/><path d="M4 10h16M9 3v4M15 3v4"/></svg></div>
+          <h3>The weekly website</h3>
+          <p>Watches for the moment booking opens on an old club website and books a place.</p>
+          <div class="m">Slot 1 of 20, 3.3 s after opening, 0 model calls</div>
+        </article>
+        <article class="tile">
+          <div class="ico"><svg viewBox="0 0 24 24"><path d="M6 4h3l2 5-2 1a11 11 0 0 0 5 5l1-2 5 2v3a2 2 0 0 1-2 2A16 16 0 0 1 4 6a2 2 0 0 1 2-2z"/></svg></div>
+          <h3>Call the landlord</h3>
+          <p>A voice agent in your cloned voice says it is your AI assistant, asks your questions and files the answers.</p>
+          <div class="m">ElevenLabs voice agent</div>
+        </article>
+        <article class="tile">
+          <div class="ico"><svg viewBox="0 0 24 24"><path d="M20 12a8 8 0 1 1-2.3-5.7"/><path d="M20 4v5h-5"/></svg></div>
+          <h3>Self-repair</h3>
+          <p>When a site changes, the old route breaks. The model takes over only the changed steps, and the route is rewritten.</p>
+          <div class="m">7 → 1 → 5 → 1 model calls</div>
+        </article>
+      </div>
+    </div>
   </section>
 
-  <footer>
-    <span>Gibril Bachouchi · <a href="https://www.askgib.com/projects">askgib.com/projects</a></span>
-    <span>Next: <a href="../more/">MORE →</a></span>
-  </footer>
-</div>
+  <section class="learn" id="learn">
+    <div class="wrap">
+      <h2>The first time costs a model. Then it learns the way.</h2>
+      <p class="intro">A run that ends on a real receipt becomes the route for that site. The next run replays it and asks the model only for what changes, like the message for each flat.</p>
+      <div class="fig">
+        <div class="panel">
+          <h3>Model calls per flat application</h3>
+          <p class="sub">Each dot is one call to the model. Before the third run, the form was redesigned on purpose.</p>
+          <svg id="calls" viewBox="0 0 540 300" role="img" aria-label="Model calls per run: 7 on the first run, 1 on the repeat, 5 after the form redesign, 1 after the route is rewritten."></svg>
+        </div>
+        <div class="panel">
+          <h3>Tokens per application</h3>
+          <p class="sub">Drawn to scale: the area of each sun is the tokens it used.</p>
+          <div class="sun-fig">
+            <div><svg id="sunBig" width="170" height="170" viewBox="0 0 170 170" aria-hidden="true"></svg><b>9,000 to 12,000</b><span>first run on a site</span></div>
+            <div><svg id="sunSmall" width="170" height="170" viewBox="0 0 170 170" aria-hidden="true"></svg><b>about 330</b><span>repeat, on the learned route: 97% fewer</span></div>
+          </div>
+        </div>
+      </div>
+      <div class="time-row">
+        <div><b>56 s</b><span>one application by hand</span></div>
+        <div><b>19 to 21 s</b><span>Thumb, first run on a site</span></div>
+        <div><b>4 to 13 s</b><span>Thumb, repeat on the learned route</span></div>
+      </div>
+      <p class="footnote">Runs of 22 October 2026 with real gpt-5-mini calls on Aiven. 16 of 16 repeat applications were confirmed by a receipt on the page. The listing sites in the demo were built for it, with made-up people; runs on real sites were read-only or approved.</p>
+    </div>
+  </section>
+
+  <section class="inside" id="inside">
+    <div class="wrap">
+      <h2>It reads the page, not a screenshot.</h2>
+      <p class="intro">Thumb runs websites in its own browser, in your logged-in sessions. A script in every frame sends the page's text and every button, link and field. The model answers with one action, and Thumb sees what happened.</p>
+      <div class="arch">
+        <svg viewBox="0 0 1000 470" role="img" aria-labelledby="archT">
+          <title id="archT">On the iPhone, Thumb's browser runs FrameAgent.js in every frame and sends a snapshot to the agent API on Aiven Runtime. The API replays a learned route from PostgreSQL or asks gpt-5-mini for one action, and sends the next action back. ClickHouse keeps every step, Valkey streams live events to the phone, and ElevenLabs makes the calls.</title>
+          <defs>
+            <marker id="ah" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0L10 5L0 10z" fill="#4A5793"/></marker>
+            <marker id="ar" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0L10 5L0 10z" fill="#962619"/></marker>
+          </defs>
+
+          <rect class="box" x="20" y="186" width="150" height="70" rx="10"/>
+          <text class="t" x="38" y="216">Websites</text><text class="s" x="38" y="238">listings, jobs, clubs</text>
+
+          <rect class="zone" x="210" y="24" width="300" height="420" rx="34"/>
+          <text class="z" x="236" y="58">On the iPhone, SwiftUI</text>
+          <rect class="box" x="234" y="76" width="252" height="66" rx="10"/>
+          <text class="t" x="252" y="104">Home tiles</text><text class="s" x="252" y="126">flats, jobs, booking, teach, memory</text>
+          <rect class="box" x="234" y="186" width="252" height="70" rx="10"/>
+          <text class="t" x="252" y="216">Thumb's browser</text><text class="s" x="252" y="238">WKWebView, your logged-in sessions</text>
+          <rect class="fill" x="234" y="282" width="252" height="76" rx="10"/>
+          <text class="tw" x="252" y="312">FrameAgent.js</text><text class="sw" x="252" y="334">in every frame: snapshot, act, record</text>
+          <rect class="box" x="234" y="372" width="252" height="52" rx="10"/>
+          <text class="t" x="252" y="404">Call screen</text>
+          <path class="ln" d="M172 221H232" marker-start="url(#ah)" marker-end="url(#ah)"/>
+          <path class="ln" d="M360 256V280"/>
+
+          <rect class="zone" x="560" y="24" width="420" height="300" rx="34"/>
+          <text class="z" x="586" y="58">On Aiven</text>
+          <rect class="fill" x="584" y="76" width="190" height="148" rx="10"/>
+          <text class="tw" x="602" y="106">Agent API</text>
+          <text class="sw" x="602" y="128">Node 24, Aiven Runtime</text>
+          <text class="sw" x="602" y="162">warm: replay the route</text>
+          <text class="sw" x="602" y="184">cold: ask the model</text>
+          <text class="sw" x="602" y="206">for one action</text>
+          <rect class="box" x="796" y="76" width="160" height="66" rx="10"/>
+          <text class="t" x="812" y="104">PostgreSQL</text><text class="s" x="812" y="126">memory and routes</text>
+          <rect class="box" x="796" y="158" width="160" height="66" rx="10"/>
+          <text class="t" x="812" y="186">ClickHouse</text><text class="s" x="812" y="208">every step, every 10 s</text>
+          <rect class="box" x="796" y="240" width="160" height="66" rx="10"/>
+          <text class="t" x="812" y="268">Valkey</text><text class="s" x="812" y="290">live stream to the phone</text>
+          <path class="ln" d="M774 109H794"/>
+          <path class="ln" d="M876 142V156" marker-end="url(#ah)"/>
+          <path class="ln" d="M774 200C786 230 786 273 794 273" marker-end="url(#ah)"/>
+
+          <path class="loop" d="M488 300C530 300 540 130 582 130" marker-end="url(#ar)"/>
+          <path class="loop" d="M582 190C536 190 528 340 490 340" marker-end="url(#ar)"/>
+          <text class="lb" x="508" y="118">snapshot</text>
+          <text class="lb" x="500" y="368">next action</text>
+
+          <rect class="box" x="584" y="372" width="190" height="66" rx="10"/>
+          <text class="t" x="602" y="400">gpt-5-mini</text><text class="s" x="602" y="422">one action at a time</text>
+          <path class="ln" d="M679 224V370" marker-end="url(#ah)"/>
+          <rect class="box" x="796" y="372" width="160" height="66" rx="10"/>
+          <text class="t" x="812" y="400">ElevenLabs</text><text class="s" x="812" y="422">voice agent</text>
+          <path class="ln" d="M486 398H500V456H876V440" marker-end="url(#ah)"/>
+        </svg>
+      </div>
+      <div class="rules">
+        <div><h3>One action per step</h3><p>Click, type, select, navigate, scroll, extract, done or fail, chosen by a forced function call.</p></div>
+        <div><h3>You approve what sends</h3><p>Anything that sends something waits for your approval, unless you trusted that task.</p></div>
+        <div><h3>Receipts, not claims</h3><p>An application only counts when, after an approved send, the page reads as a confirmation.</p></div>
+      </div>
+      <ul class="stack" aria-label="Built with">
+        <li>SwiftUI</li><li>WKWebView</li><li>Node 24 and Express</li><li>Aiven Runtime</li><li>Aiven for PostgreSQL</li><li>Aiven for ClickHouse</li><li>Aiven for Valkey</li><li>OpenAI gpt-5-mini</li><li>ElevenLabs</li>
+      </ul>
+    </div>
+  </section>
+
+  <section class="end">
+    <div class="wrap">
+      <h2>See it run.</h2>
+      <p>Tap through a flat hunt on Thumb's real screens.</p>
+      <a class="cta" href="https://gibouu.github.io/thumb/"><svg viewBox="0 0 14 14" aria-hidden="true"><path d="M3 1.5v11l9-5.5z" fill="currentColor"/></svg>Click through a workflow</a>
+      <svg class="land" id="endLand" viewBox="0 0 800 150" preserveAspectRatio="xMidYMax meet" aria-hidden="true"></svg>
+      <p class="foot">Built by Gibril Bachouchi. More projects on <a href="https://www.askgib.com/projects">askgib.com</a>.</p>
+    </div>
+  </section>
+</main>
+
+<nav class="tabbar" aria-label="Sections">
+  <a href="#walk"><svg viewBox="0 0 20 20" aria-hidden="true"><circle cx="6" cy="6" r="3.4" fill="#1C2E7A"/><circle cx="14" cy="6" r="3.4" fill="#1C2E7A"/><circle cx="6" cy="14" r="3.4" fill="#1C2E7A"/><circle cx="14" cy="14" r="3.4" fill="#1C2E7A"/></svg>Run</a>
+  <a href="#tasks"><svg viewBox="0 0 20 20" aria-hidden="true"><rect x="2.5" y="2.5" width="6.5" height="6.5" rx="1.6" fill="#1C2E7A"/><rect x="11" y="2.5" width="6.5" height="6.5" rx="1.6" fill="none" stroke="#1C2E7A" stroke-width="1.6"/><rect x="2.5" y="11" width="6.5" height="6.5" rx="1.6" fill="none" stroke="#1C2E7A" stroke-width="1.6"/><rect x="11" y="11" width="6.5" height="6.5" rx="1.6" fill="none" stroke="#1C2E7A" stroke-width="1.6"/></svg>Tasks</a>
+  <a href="#learn"><svg viewBox="0 0 20 20" aria-hidden="true"><circle cx="4" cy="16" r="1.6" fill="#1C2E7A"/><circle cx="8" cy="12" r="1.9" fill="#1C2E7A"/><circle cx="12" cy="8.5" r="2.2" fill="#1C2E7A"/><circle cx="16" cy="4.5" r="2.5" fill="#962619"/></svg>Learns</a>
+  <a href="#inside"><svg viewBox="0 0 20 20" aria-hidden="true"><rect x="5" y="2" width="10" height="16" rx="2.6" fill="none" stroke="#1C2E7A" stroke-width="1.6"/><circle cx="10" cy="10" r="2.2" fill="#962619"/></svg>Inside</a>
+</nav>
+
+<script>
+(() => {
+  const NS = "http://www.w3.org/2000/svg";
+  const INK = "#1C2E7A", RUST = "#962619", SUN = "#F29966";
+  const dot = (g, x, y, r, fill) => {
+    const c = document.createElementNS(NS, "circle");
+    c.setAttribute("cx", x.toFixed(1)); c.setAttribute("cy", y.toFixed(1));
+    c.setAttribute("r", r.toFixed(2)); c.setAttribute("fill", fill);
+    g.appendChild(c);
+  };
+  // A halftone disc: dots on a grid, bigger towards the centre, like the app's sun.
+  const halftone = (g, cx, cy, R, step, fill, maxR) => {
+    for (let y = cy - R; y <= cy + R; y += step)
+      for (let x = cx - R; x <= cx + R; x += step) {
+        const d = Math.hypot(x - cx, y - cy) / R;
+        if (d <= 1) dot(g, x, y, Math.max(.35, maxR * (1 - d * .7)), fill);
+      }
+  };
+  const sunRays = (g, cx, cy, R, n, fill, r) => {
+    for (let i = 0; i < n; i++) {
+      const a = (i / n) * Math.PI * 2;
+      dot(g, cx + Math.cos(a) * R, cy + Math.sin(a) * R, r, fill);
+    }
+  };
+  const tree = (g, x, base, R, step) => {
+    const l = document.createElementNS(NS, "line");
+    l.setAttribute("x1", x); l.setAttribute("x2", x);
+    l.setAttribute("y1", base); l.setAttribute("y2", base - R * 1.2);
+    l.setAttribute("stroke", INK); l.setAttribute("stroke-width", "1.6");
+    g.appendChild(l);
+    halftone(g, x, base - R * 1.2 - R, R, step, INK, step * .38);
+  };
+  const horizon = (g, y, w, gap, r) => { for (let x = gap / 2; x < w; x += gap) dot(g, x, y, r, INK); };
+
+  // Hero landscape: dotted horizon, halftone trees, the sun behind the phone.
+  const hero = document.getElementById("heroLand");
+  if (hero) {
+    halftone(hero, 560, 150, 62, 7, SUN, 2.6);
+    sunRays(hero, 560, 150, 90, 18, RUST, 2.2);
+    [[70, 24], [130, 34], [690, 32], [756, 20]].forEach(([x, R]) => tree(hero, x, 308, R, 6));
+    horizon(hero, 310, 800, 9, 1.6);
+  }
+  const end = document.getElementById("endLand");
+  if (end) {
+    halftone(end, 400, 92, 44, 6, SUN, 2.1);
+    sunRays(end, 400, 92, 64, 14, RUST, 1.9);
+    [[70, 18], [130, 26], [670, 26], [735, 16]].forEach(([x, R]) => tree(end, x, 138, R, 5));
+    horizon(end, 140, 800, 9, 1.6);
+  }
+  // The orange halftone corner of the lead tile, as on the app's home.
+  const corner = document.getElementById("corner");
+  if (corner) for (let y = 4; y < 104; y += 6) for (let x = 4; x < 104; x += 6) {
+    const d = Math.hypot(104 - x, y) / 104;
+    if (d < 1) dot(corner, x, y, Math.max(.3, 2.3 * (1 - d)), SUN);
+  }
+
+  // Signature figure 1: model calls per run, one dot per call.
+  const calls = document.getElementById("calls");
+  if (calls) {
+    const runs = [
+      { n: 7, label: "First run", sub: "learns the site" },
+      { n: 1, label: "Repeat", sub: "replays the route" },
+      { n: 5, label: "Redesign", sub: "repairs the steps", rust: true },
+      { n: 1, label: "Repeat", sub: "route rewritten" },
+    ];
+    const base = 200, gapY = 21, colW = 136;
+    horizon(calls, base + 16, 540, 8, 1.4);
+    runs.forEach((r, i) => {
+      const x = 66 + i * colW;
+      for (let k = 0; k < r.n; k++) dot(calls, x, base - k * gapY, 8, r.rust ? RUST : INK);
+      const t = (txt, y, cls) => {
+        const e = document.createElementNS(NS, "text");
+        e.setAttribute("x", x); e.setAttribute("y", y); e.setAttribute("text-anchor", "middle");
+        if (cls) e.setAttribute("class", cls);
+        e.textContent = txt; calls.appendChild(e);
+      };
+      t(String(r.n), base - r.n * gapY - 6, "big" + (r.rust ? " rust" : ""));
+      t(r.label, base + 46);
+      t(r.sub, base + 66, "subl");
+    });
+    // the redesign marker
+    const m = document.createElementNS(NS, "line");
+    m.setAttribute("x1", 66 + 1.5 * colW); m.setAttribute("x2", 66 + 1.5 * colW);
+    m.setAttribute("y1", 40); m.setAttribute("y2", base + 6);
+    m.setAttribute("stroke", RUST); m.setAttribute("stroke-width", "2");
+    m.setAttribute("stroke-dasharray", "0 6"); m.setAttribute("stroke-linecap", "round");
+    calls.appendChild(m);
+  }
+
+  // Signature figure 2: tokens as suns, area to scale (about 10,700 against about 330).
+  const big = document.getElementById("sunBig"), small = document.getElementById("sunSmall");
+  if (big && small) {
+    const Rbig = 62, Rsmall = Rbig * Math.sqrt(330 / 10700);
+    halftone(big, 85, 85, Rbig, 6, SUN, 2.6);
+    sunRays(big, 85, 85, Rbig + 16, 18, RUST, 1.9);
+    halftone(small, 85, 85 + 40, Rsmall, 3, SUN, 1.5);
+    sunRays(small, 85, 85 + 40, Rsmall + 8, 10, RUST, 1.3);
+  }
+
+  // Walk-through: the sticky phone shows the step in view.
+  const glass = document.getElementById("walkGlass"), pager = document.getElementById("pager");
+  const steps = [...document.querySelectorAll(".step")];
+  if (glass && steps.length) {
+    const imgs = steps.map((s, i) => {
+      const im = document.createElement("img");
+      im.src = s.dataset.img; im.alt = ""; im.style.opacity = i ? 0 : 1;
+      glass.appendChild(im);
+      pager.appendChild(document.createElement("i"));
+      return im;
+    });
+    const show = (at) => {
+      imgs.forEach((im, j) => im.style.opacity = j === at ? 1 : 0);
+      [...pager.children].forEach((p, j) => p.classList.toggle("on", j === at));
+      steps.forEach((s, j) => s.classList.toggle("on", j === at));
+    };
+    show(0);
+    const io = new IntersectionObserver((es) => es.forEach((e) => {
+      if (e.isIntersecting) show(steps.indexOf(e.target));
+    }), { rootMargin: "-45% 0px -45% 0px" });
+    steps.forEach((s) => io.observe(s));
+  }
+
+  // Tab bar: mark the section in view.
+  const tabs = [...document.querySelectorAll(".tabbar a")];
+  const secs = tabs.map((a) => document.querySelector(a.getAttribute("href")));
+  const tio = new IntersectionObserver((es) => es.forEach((e) => {
+    if (e.isIntersecting) tabs.forEach((a, i) => a.classList.toggle("on", secs[i] === e.target));
+  }), { rootMargin: "-40% 0px -55% 0px" });
+  secs.forEach((s) => s && tio.observe(s));
+})();
+</script>
 </body>
 </html>

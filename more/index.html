@@ -5,167 +5,402 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>MORE</title>
 <meta name="description" content="Morning Operator: a native iPhone prototype that learns from what you choose to share, proposes one daily routine, and follows it once you approve.">
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400;600&display=swap">
-<link rel="stylesheet" href="../style.css">
+<meta name="theme-color" content="#F3E6D6">
+<link rel="icon" href="img/icon.png">
+<link rel="apple-touch-icon" href="img/icon.png">
 <style>
-  :root { --accent: #b4532a; --bg: #f4efe4; }
-  @media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) { --accent: #e07a4c; --bg: #14120f; } }
-  .zone2 { fill: none; stroke: var(--muted); stroke-width: 1.5; stroke-dasharray: 3 6; }
+/* MORE: ultramarine ink on warm paper, round dots, the system font.
+   The five phases (dawn, morning, day, evening, night) are the app's own
+   light palette from docs/DESIGN.md. The page moves through them as you scroll. */
+:root {
+  --paper: #F3E6D6;
+  --ink: #24305E;
+  --sun: #CF5220;
+  --ink-2: color-mix(in srgb, var(--ink) 76%, var(--paper));
+  --hair: color-mix(in srgb, var(--ink) 34%, var(--paper));
+  --card: color-mix(in srgb, var(--paper) 55%, #ffffff);
+  --gutter: 24px;
+  color-scheme: light;
+}
+* { box-sizing: border-box; }
+html { -webkit-text-size-adjust: 100%; }
+body {
+  margin: 0;
+  background: var(--paper);
+  color: var(--ink);
+  font: 400 17px/1.5 -apple-system, BlinkMacSystemFont, "SF Pro Text", system-ui, "Helvetica Neue", sans-serif;
+  -webkit-font-smoothing: antialiased;
+}
+a { color: inherit; }
+a:focus-visible { outline: 2px solid var(--ink); outline-offset: 3px; border-radius: 4px; }
+
+/* layout: the sky on one side, the morning on the other */
+.page { display: grid; grid-template-columns: minmax(0, 5fr) minmax(0, 6fr); min-height: 100vh; }
+.sky { position: sticky; top: 0; height: 100vh; }
+.sky canvas { display: block; width: 100%; height: 100%; }
+.clock { position: absolute; left: var(--gutter); bottom: 22px; font-size: 15px; color: var(--ink-2); }
+.clock .num { font-size: 22px; font-weight: 600; color: var(--ink); margin-right: 6px; }
+.morning { padding: 72px var(--gutter) 40px; max-width: 640px; }
+
+@media (max-width: 860px) {
+  .page { display: block; }
+  .sky {
+    height: 168px; z-index: 2; background: var(--paper);
+    border-bottom: 2px dotted var(--hair);
+  }
+  .clock { bottom: auto; top: 10px; left: 16px; font-size: 13px; }
+  .clock .num { font-size: 17px; }
+  .morning { padding-top: 36px; margin: 0 auto; }
+}
+
+/* type: one family, size and weight carry the hierarchy */
+h1 { font-size: clamp(72px, 13vw, 132px); line-height: .9; letter-spacing: -.045em; font-weight: 700; margin: 22px 0 18px; }
+h2 { font-size: 28px; line-height: 1.15; letter-spacing: -.02em; font-weight: 650; margin: 0 0 16px; }
+h3 { font-size: 19px; line-height: 1.25; font-weight: 600; margin: 0 0 4px; letter-spacing: -.01em; }
+p { margin: 0 0 14px; }
+.lede { font-size: 23px; line-height: 1.35; letter-spacing: -.012em; max-width: 26ch; margin-bottom: 18px; }
+.quiet { color: var(--ink-2); }
+.num { font-variant-numeric: tabular-nums; }
+
+/* hero */
+.icon { width: 76px; height: 76px; border-radius: 17px; display: block; box-shadow: 0 0 0 1px var(--hair); }
+.status { font-size: 15px; color: var(--ink-2); }
+
+section { padding: 56px 0 8px; }
+section > p { max-width: 58ch; }
+
+/* tickets: printed paper with a dotted ink edge */
+.ticket { background: var(--card); border: 2px dotted var(--ink); border-radius: 10px; padding: 18px; }
+
+/* the routine: one row per moment, a dot that fills as you reach it */
+.routine { list-style: none; margin: 8px 0 0; padding: 0; }
+.routine li { position: relative; padding: 0 0 26px 40px; }
+.routine li::before {
+  content: ""; position: absolute; left: 6px; top: 5px; width: 14px; height: 14px; border-radius: 50%;
+  border: 2px solid var(--ink); background: transparent; transition: background .4s;
+}
+.routine li.done::before { background: var(--ink); }
+.routine li:not(:last-child)::after {
+  content: ""; position: absolute; left: 12px; top: 28px; bottom: 4px; width: 3px;
+  background: radial-gradient(circle, var(--hair) 1.3px, transparent 1.6px) 0 0 / 3px 8px repeat-y;
+}
+.routine p { color: var(--ink-2); margin: 0; }
+
+/* the Lock Screen moment, drawn small inside step five */
+.live {
+  margin-top: 12px; display: flex; align-items: center; gap: 14px; max-width: 340px;
+  background: var(--card); border-radius: 22px; padding: 12px 14px; box-shadow: 0 0 0 1px var(--hair);
+}
+.live .sunmark { width: 26px; height: 26px; flex: none; }
+.live .what { flex: 1; min-width: 0; font-size: 14px; line-height: 1.3; }
+.live .what b { display: block; font-weight: 600; }
+.live .bar { display: flex; gap: 4px; margin-top: 6px; }
+.live .bar i { width: 5px; height: 5px; border-radius: 50%; background: var(--ink); }
+.live .bar i.off { background: var(--hair); }
+.live .btn { font-size: 13px; font-weight: 600; padding: 6px 10px; border-radius: 999px; border: 1.5px dotted var(--ink); }
+
+/* how it fits together: dots and dotted lines only */
+.device { border: 2px dotted var(--ink); border-radius: 26px; padding: 22px 18px 18px; margin-top: 8px; }
+.device-name { font-size: 14px; color: var(--ink-2); margin: 0 0 14px; }
+.tier-name { font-size: 14px; color: var(--ink-2); margin: 0 0 8px; }
+.grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.grid2 .wide { grid-column: 1 / -1; }
+.node { border: 2px dotted var(--hair); border-radius: 10px; padding: 10px 12px; background: var(--card); }
+.node b { display: block; font-weight: 600; font-size: 15px; }
+.node span { font-size: 13px; color: var(--ink-2); line-height: 1.35; display: block; }
+.node.key { border-color: var(--ink); }
+.node.key b { font-size: 17px; }
+.node.recap { display: flex; gap: 12px; align-items: center; border-color: var(--ink); }
+.node.recap .dot { width: 18px; height: 18px; border-radius: 50%; background: var(--sun); flex: none; }
+.link {
+  height: 34px; margin: 4px auto; width: 3px; position: relative;
+  background: radial-gradient(circle, var(--ink) 1.4px, transparent 1.7px) 0 0 / 3px 8px repeat-y;
+}
+.link::after { content: attr(data-label); position: absolute; left: 14px; top: 8px; font-size: 13px; color: var(--ink-2); white-space: nowrap; }
+.later { margin-top: 14px; border: 2px dotted var(--hair); border-radius: 10px; padding: 10px 12px; font-size: 14px; color: var(--ink-2); }
+
+/* the recap: where it stands */
+.facts { margin: 6px 0 14px; padding: 0; list-style: none; }
+.facts li { display: grid; grid-template-columns: 112px 1fr; gap: 16px; align-items: baseline; padding: 14px 0; border-bottom: 2px dotted var(--hair); }
+.facts .n { font-size: 40px; font-weight: 700; letter-spacing: -.03em; line-height: 1; font-variant-numeric: tabular-nums; }
+.facts p { margin: 0; color: var(--ink-2); }
+
+.two { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+.two ul { margin: 8px 0 0; padding-left: 18px; color: var(--ink-2); }
+.two li { margin-bottom: 8px; }
+.two li::marker { content: "● "; color: var(--ink); font-size: .7em; }
+@media (max-width: 560px) { .two { grid-template-columns: 1fr; } .facts li { grid-template-columns: 84px 1fr; } .facts .n { font-size: 32px; } }
+
+.stack { display: flex; flex-wrap: wrap; gap: 8px; list-style: none; padding: 0; margin: 4px 0 0; }
+.stack li { font-size: 15px; padding: 6px 12px; border-radius: 999px; border: 2px dotted var(--hair); }
+
+footer { padding: 72px 0 24px; font-size: 15px; color: var(--ink-2); }
+footer a { text-decoration-style: dotted; text-underline-offset: 4px; }
+
+@media (prefers-reduced-motion: reduce) { .routine li::before { transition: none; } }
 </style>
 </head>
 <body>
-<div class="wrap">
-  <header class="top">
-    <a href="../">Projects by Gibril Bachouchi</a>
-    <nav><a href="../understudy/">Understudy</a><a href="../thumb/">Thumb</a><a href="./" aria-current="page">MORE</a></nav>
-  </header>
+<div class="page">
+  <div class="sky" aria-hidden="true"><canvas id="sky"></canvas><div class="clock"><span id="time" class="num">05:45</span> <span id="phase">dawn</span></div></div>
 
-  <div class="hero">
-    <span class="eyebrow"><span class="dot"></span>iOS prototype · October 2026</span>
-    <h1>MORE</h1>
-    <p class="lede">Less phone handling. More of the morning you enjoy. Morning Operator learns from what you choose to share, proposes one routine, and follows it once you approve.</p>
-    <div class="meta">
-      <div><b>Platform</b>Native iPhone app, iOS 26</div>
-      <div><b>Models</b>On the device, Apple models</div>
-      <div><b>Accounts</b>None: no MORE account, no backend</div>
-    </div>
-  </div>
+  <main class="morning">
+    <header>
+      <img class="icon" src="img/icon.png" alt="MORE app icon: a sun made of dots over a dotted horizon" width="76" height="76">
+      <h1>MORE</h1>
+      <p class="lede">Less phone handling. More of the morning you enjoy.</p>
+      <p class="status">Morning Operator, an iPhone prototype by Gibril Bachouchi. October 2026.</p>
+    </header>
 
-  <section>
-    <h2>The idea</h2>
-    <p class="big">Most mornings start by picking up the phone and losing twenty minutes to it.</p>
-    <p>MORE turns the evidence you explicitly share about your mornings into one routine you review and approve, then walks you through it: a short spoken opening with the weather and your calendar, your mail, one article, one activity you chose, and a recap at the end. Nothing runs until you approve it, and the learning happens on the phone.</p>
-  </section>
+    <section>
+      <h2>Most mornings start with the phone</h2>
+      <p>You pick it up to check the time, and the morning goes with it. MORE turns what you choose to share about your mornings into one routine. You read it, change it and approve it. Then it walks you through it: the weather and your calendar, your mail, one article, one activity you picked, and a short recap at the end.</p>
+      <p>Nothing runs until you approve. The learning happens on the phone.</p>
+    </section>
 
-  <section>
-    <h2>A morning, step by step</h2>
-    <ol class="steps">
-      <li><b>Choose and learn</b><span>Pick the sources it may learn from: Screen Time, a screen recording you make or import, and your apps.</span></li>
-      <li><b>Review and edit</b><span>It proposes a routine and cites the dated mornings it came from. Keep, drop or resize each moment.</span></li>
-      <li><b>Approve once</b><span>Approving saves the routine and starts nothing. The same routine is reused every day.</span></li>
-      <li><b>Start a morning</b><span>A concise opening with weather and calendar, then unread Gmail, read inside the app.</span></li>
-      <li><b>One activity</b><span>Open the activity you chose with a timer, and +2 or Next from the Lock Screen and Dynamic Island.</span></li>
-      <li><b>Finish and review</b><span>A recap of what you did, skipped or stopped, saved on the phone, with room for your thoughts.</span></li>
-    </ol>
-  </section>
+    <section>
+      <h2>A morning, moment by moment</h2>
+      <ol class="routine">
+        <li><h3>Choose what it learns from</h3><p>Screen Time, a screen recording you make or import, and the apps you connect.</p></li>
+        <li><h3>Read the proposal</h3><p>It suggests a routine and names the dated mornings it came from. Keep, drop or resize each moment.</p></li>
+        <li><h3>Approve it once</h3><p>Approving saves the routine and starts nothing. The same routine comes back every day.</p></li>
+        <li><h3>Start the morning</h3><p>A short spoken opening with the weather and your calendar, then your unread Gmail, read inside the app.</p></li>
+        <li>
+          <h3>Do the one thing you chose</h3>
+          <p>Open your activity with a timer. Add two minutes or move on from the Lock Screen and the Dynamic Island.</p>
+          <div class="live" role="img" aria-label="Example Lock Screen card: a timer for the current moment with +2 and Next buttons">
+            <svg class="sunmark" viewBox="0 0 26 26"><g fill="var(--sun)"><circle cx="9" cy="12" r="2"/><circle cx="13" cy="11" r="2.3"/><circle cx="17" cy="12" r="2"/><circle cx="7" cy="16" r="1.8"/><circle cx="11" cy="16" r="2.3"/><circle cx="15" cy="16" r="2.3"/><circle cx="19" cy="16" r="1.8"/></g><g fill="var(--ink)"><circle cx="3" cy="21" r="1.5"/><circle cx="8" cy="21" r="1.5"/><circle cx="13" cy="21" r="1.5"/><circle cx="18" cy="21" r="1.5"/><circle cx="23" cy="21" r="1.5"/></g></svg>
+            <div class="what"><b>Your activity</b><div class="bar"><i></i><i></i><i></i><i></i><i class="off"></i><i class="off"></i><i class="off"></i></div></div>
+            <span class="btn">+2</span><span class="btn">Next</span>
+          </div>
+        </li>
+        <li><h3>Finish and look back</h3><p>A recap of what you did, skipped or stopped, kept on the phone, with room for a thought.</p></li>
+      </ol>
+    </section>
 
-  <section>
-    <h2>Architecture</h2>
-    <div class="figure">
-      <svg viewBox="0 0 960 430" role="img" aria-labelledby="arch-t">
-        <title id="arch-t">MORE architecture: shared sources feed an on-device learning step, which proposes a plan you approve; the approved plan runs the morning and saves a recap, all on the iPhone. Private Cloud Compute is a future optional route.</title>
-        <defs>
-          <marker id="head" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path class="mh" d="M0 0L10 5L0 10z"/></marker>
-          <marker id="headA" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path class="mha" d="M0 0L10 5L0 10z"/></marker>
-        </defs>
-
-        <rect class="zone" x="20" y="24" width="920" height="344" rx="16"/>
-        <text class="z" x="40" y="52">On your iPhone · no MORE server</text>
-
-        <rect class="box" x="40" y="72" width="190" height="48" rx="10"/>
-        <text class="t" x="56" y="93">Screen Time</text><text class="s" x="56" y="110">aggregate, with your consent</text>
-        <rect class="box" x="40" y="128" width="190" height="48" rx="10"/>
-        <text class="t" x="56" y="149">Screen recording</text><text class="s" x="56" y="166">5-30 min, up to 24 frames</text>
-        <rect class="box" x="40" y="184" width="190" height="48" rx="10"/>
-        <text class="t" x="56" y="205">Gmail</text><text class="s" x="56" y="222">read-only, never sends</text>
-        <rect class="box" x="40" y="240" width="190" height="48" rx="10"/>
-        <text class="t" x="56" y="261">Calendar · Weather</text><text class="s" x="56" y="278">for the opening</text>
-        <rect class="box" x="40" y="296" width="190" height="48" rx="10"/>
-        <text class="t" x="56" y="317">Sleep</text><text class="s" x="56" y="334">HealthKit, off by default</text>
-
-        <path class="arrow" d="M230 96C250 96 250 190 268 196"/>
-        <path class="arrow" d="M230 152C250 152 250 200 268 204"/>
-        <path class="arrow" d="M230 208H268"/>
-        <path class="arrow" d="M230 264C250 264 250 216 268 212"/>
-        <path class="arrow" d="M230 320C250 320 250 226 268 220"/>
-
-        <rect class="hot" x="270" y="146" width="180" height="124" rx="10"/>
-        <text class="w" x="286" y="174">Learn</text>
-        <text class="ws" x="286" y="198">local extraction</text>
-        <text class="ws" x="286" y="216">on-device Apple model</text>
-        <text class="ws" x="286" y="244">a cited proposal</text>
-        <text class="ws" x="286" y="260">from dated mornings</text>
-
-        <path class="arrow" d="M450 208H488"/>
-
-        <rect class="box" x="490" y="146" width="160" height="124" rx="10"/>
-        <text class="t" x="506" y="174">Plan</text>
-        <text class="s" x="506" y="198">versioned draft</text>
-        <text class="s" x="506" y="216">you edit it</text>
-        <text class="s" x="506" y="244">you approve it once</text>
-        <text class="s" x="506" y="260">reused every day</text>
-
-        <path class="loop" d="M650 208C670 208 670 96 688 96"/>
-        <path class="arrow" d="M650 208C670 208 670 152 688 152"/>
-        <path class="arrow" d="M650 208H688"/>
-        <path class="arrow" d="M650 208C670 208 670 264 688 264"/>
-        <text class="lbl" x="616" y="132">Start</text>
-
-        <rect class="box" x="690" y="72" width="230" height="48" rx="10"/>
-        <text class="t" x="706" y="93">Opening</text><text class="s" x="706" y="110">weather and calendar, spoken</text>
-        <rect class="box" x="690" y="128" width="230" height="48" rx="10"/>
-        <text class="t" x="706" y="149">Gmail reader</text><text class="s" x="706" y="166">plain text, no remote images</text>
-        <rect class="box" x="690" y="184" width="230" height="48" rx="10"/>
-        <text class="t" x="706" y="205">One feed or article</text><text class="s" x="706" y="222">a visible website you control</text>
-        <rect class="box" x="690" y="240" width="230" height="48" rx="10"/>
-        <text class="t" x="706" y="261">Activity + timer</text><text class="s" x="706" y="278">+2 and Next on the Lock Screen</text>
-        <rect class="hot" x="690" y="296" width="230" height="48" rx="10"/>
-        <text class="w" x="706" y="317">Recap</text><text class="ws" x="706" y="334">saved on the phone</text>
-        <path class="arrow" d="M805 288V294"/>
-
-        <rect class="zone2" x="270" y="384" width="380" height="36" rx="10"/>
-        <text class="s" x="286" y="407">Private Cloud Compute: future, optional, only by explicit choice</text>
-        <path class="arrow" d="M360 270V382" stroke-dasharray="3 5"/>
-      </svg>
-    </div>
-    <p class="caption">Eight modules in one Swift app with a widget: experience shell, connections, evidence and learning, the approved plan, the morning run, briefing, review and privacy, and delivery. Raw recordings stay local, and there is no silent remote fallback.</p>
-  </section>
-
-  <section>
-    <h2>Where it stands</h2>
-    <div class="stats">
-      <div class="stat"><div class="n">0</div><div class="d">accounts or servers of its own: the routine, the evidence and the recap live on the phone</div></div>
-      <div class="stat"><div class="n">1,269</div><div class="d">package checks passing in the Gmail implementation run</div></div>
-      <div class="stat"><div class="n">24</div><div class="d">frames at most sampled from an imported recording, up to 31 minutes</div></div>
-      <div class="stat"><div class="n">1</div><div class="d">routine, approved once and reused every morning</div></div>
-    </div>
-    <p class="note">Installed on the owner's iPhone, with real Google sign-in, unread count, reading and approval of a Screen Time suggestion confirmed. A complete ordinary morning, replies, alarms and Siri still need their own checks on the phone.</p>
-  </section>
-
-  <section>
-    <h2>Privacy by design</h2>
-    <div class="cols">
-      <div>
-        <h3>What it does</h3>
-        <ul>
-          <li>Learns only from what you explicitly share, and shows which dates it used</li>
-          <li>Runs extraction and the model on the phone</li>
-          <li>Lets you forget everything it learned</li>
-        </ul>
+    <section>
+      <h2>How it fits together</h2>
+      <p>Everything below happens on the iPhone. There is no MORE account and no MORE server.</p>
+      <div class="device" role="group" aria-label="Architecture, all on the iPhone">
+        <p class="device-name">On your iPhone</p>
+        <p class="tier-name">What you choose to share</p>
+        <div class="grid2">
+          <div class="node"><b>Screen Time</b><span>totals only, with your consent</span></div>
+          <div class="node"><b>Screen recording</b><span>5 to 30 minutes, up to 24 frames read</span></div>
+          <div class="node"><b>Gmail</b><span>read-only, never sends</span></div>
+          <div class="node"><b>Calendar and Weather</b><span>for the opening</span></div>
+          <div class="node wide"><b>Sleep</b><span>HealthKit, off until you turn it on</span></div>
+        </div>
+        <div class="link"></div>
+        <div class="node key"><b>Learn</b><span>Local extraction and an on-device Apple model write a proposal that cites the dated mornings it used.</span></div>
+        <div class="link"></div>
+        <div class="node key"><b>Plan</b><span>You edit it and approve it once. It is reused every day.</span></div>
+        <div class="link" data-label="you press Begin"></div>
+        <p class="tier-name">The morning</p>
+        <div class="grid2">
+          <div class="node"><b>Opening</b><span>weather and calendar, spoken</span></div>
+          <div class="node"><b>Gmail reader</b><span>plain text, no remote images</span></div>
+          <div class="node"><b>One feed or article</b><span>a website you can see and control</span></div>
+          <div class="node"><b>Activity and timer</b><span>+2 and Next on the Lock Screen</span></div>
+        </div>
+        <div class="link"></div>
+        <div class="node recap"><span class="dot"></span><div><b>Recap</b><span>saved on the phone</span></div></div>
       </div>
-      <div>
-        <h3>What it never does</h3>
-        <ul>
-          <li>Send mail or create remote drafts</li>
-          <li>Start a morning, or change the routine, without you</li>
-          <li>Claim a habit the evidence does not show: a missing day is not a zero</li>
-        </ul>
+      <div class="later">Later, maybe: Apple Private Cloud Compute, as an option you would choose each time. Not built.</div>
+      <p class="quiet" style="margin-top:14px">One Swift app with a widget, in eight modules: the experience shell, connections, evidence and learning, the approved plan, the morning run, the briefing, review and privacy, and delivery. Raw recordings stay on the phone, and there is no silent fallback to a server.</p>
+    </section>
+
+    <section>
+      <h2>Recap: where it stands</h2>
+      <ul class="facts">
+        <li><span class="n">0</span><p>accounts or servers of its own. The routine, the evidence and the recap live on the phone.</p></li>
+        <li><span class="n">1</span><p>routine, approved once and used again every morning.</p></li>
+        <li><span class="n">24</span><p>frames at most read from an imported recording of up to 31 minutes.</p></li>
+        <li><span class="n">1,269</span><p>package checks passed in the Gmail implementation run.</p></li>
+      </ul>
+      <p class="quiet">It is a prototype. It runs on the owner's iPhone, where Google sign-in, the unread count, reading mail and approving a Screen Time suggestion are confirmed. A complete ordinary morning, replies, alarms and Siri still need their own checks on the phone.</p>
+    </section>
+
+    <section>
+      <h2>Your mornings stay yours</h2>
+      <div class="two">
+        <div class="ticket">
+          <h3>What it does</h3>
+          <ul>
+            <li>Learns only from what you share, and shows which dates it used</li>
+            <li>Reads and thinks on the phone</li>
+            <li>Forgets everything it learned when you ask</li>
+          </ul>
+        </div>
+        <div class="ticket">
+          <h3>What it never does</h3>
+          <ul>
+            <li>Send mail or create drafts on Google</li>
+            <li>Start a morning or change the routine without you</li>
+            <li>Claim a habit the evidence does not show. A missing day is not a zero.</li>
+          </ul>
+        </div>
       </div>
-    </div>
-  </section>
+    </section>
 
-  <section>
-    <h2>Stack</h2>
-    <ul class="chips">
-      <li>Swift</li><li>SwiftUI</li><li>iOS 26</li><li>Foundation Models</li><li>Vision</li><li>FamilyControls · DeviceActivity</li><li>ActivityKit</li><li>WeatherKit</li><li>EventKit</li><li>HealthKit</li><li>App Intents</li><li>Gmail API, read-only</li>
-    </ul>
-  </section>
+    <section>
+      <h2>Made with</h2>
+      <ul class="stack">
+        <li>Swift</li><li>SwiftUI</li><li>iOS 26</li><li>Foundation Models</li><li>Vision</li><li>FamilyControls</li><li>DeviceActivity</li><li>ActivityKit</li><li>WeatherKit</li><li>EventKit</li><li>HealthKit</li><li>App Intents</li><li>Gmail API, read-only</li>
+      </ul>
+    </section>
 
-  <footer>
-    <span>Gibril Bachouchi · <a href="https://www.askgib.com/projects">askgib.com/projects</a></span>
-    <span>Next: <a href="../understudy/">Understudy →</a></span>
-  </footer>
+    <footer>
+      Good night. More of Gibril's work is on <a href="https://www.askgib.com/projects">askgib.com/projects</a>.
+    </footer>
+  </main>
 </div>
+
+<script>
+(() => {
+  // Light palette of each phase, from MORE's docs/DESIGN.md: paper, ink, sun.
+  const PHASES = [
+    ["#F3E6D6", "#24305E", "#CF5220"], // dawn
+    ["#F6F3EC", "#16307A", "#CF5220"], // morning
+    ["#F4ECDD", "#1A2F6E", "#CF5220"], // day
+    ["#EFDFC4", "#27305A", "#C84E1E"], // evening
+    ["#E6D4B4", "#272B4C", "#C2471A"], // night
+  ];
+  const hex = h => [1, 3, 5].map(i => parseInt(h.slice(i, i + 2), 16));
+  const P = PHASES.map(p => p.map(hex));
+  const smooth = t => t * t * (3 - 2 * t);
+  const mix = (a, b, t) => a.map((v, i) => Math.round(v + (b[i] - v) * t));
+  const css = c => `rgb(${c[0]},${c[1]},${c[2]})`;
+  const clamp = (v, a, b) => Math.min(b, Math.max(a, v));
+
+  function palette(p) {
+    const x = clamp(p, 0, 1) * (P.length - 1);
+    const i = Math.min(P.length - 2, Math.floor(x));
+    const t = smooth(x - i);
+    return P[i].map((c, k) => mix(c, P[i + 1][k], t));
+  }
+
+  const reduced = matchMedia("(prefers-reduced-motion: reduce)").matches;
+  const root = document.documentElement;
+  const meta = document.querySelector('meta[name="theme-color"]');
+  const timeEl = document.getElementById("time"), phaseEl = document.getElementById("phase");
+  const canvas = document.getElementById("sky");
+  const ctx = canvas.getContext("2d");
+  let W = 0, H = 0, stars = [];
+
+  function size() {
+    const r = canvas.getBoundingClientRect();
+    const d = Math.min(2, devicePixelRatio || 1);
+    W = r.width; H = r.height;
+    canvas.width = Math.round(W * d); canvas.height = Math.round(H * d);
+    ctx.setTransform(d, 0, 0, d, 0, 0);
+    let s = 7;
+    const rnd = () => (s = (s * 16807) % 2147483647) / 2147483647;
+    stars = Array.from({ length: Math.round(W * H / 9000) }, () => [rnd() * W, rnd() * H * 0.66, 0.7 + rnd() * 1.1]);
+  }
+
+  const dot = (x, y, r) => { ctx.beginPath(); ctx.arc(x, y, r, 0, 7); ctx.fill(); };
+
+  // A disc drawn as a halftone of round dots, bigger toward the centre.
+  function halftone(cx, cy, R, gap, scale, skip) {
+    for (let y = -R; y <= R; y += gap) for (let x = -R; x <= R; x += gap) {
+      const d = Math.hypot(x, y);
+      if (d > R || (skip && skip(x, y))) continue;
+      dot(cx + x, cy + y, gap * scale * (0.55 + 0.45 * (1 - d / R)));
+    }
+  }
+
+  function draw(p) {
+    const [paper, ink, sun] = palette(p);
+    root.style.setProperty("--paper", css(paper));
+    root.style.setProperty("--ink", css(ink));
+    root.style.setProperty("--sun", css(sun));
+    if (meta) meta.content = css(paper);
+    // the time the page is set to, matched to the app's phases (DESIGN.md)
+    const T = [375, 510, 720, 1080, 1290]; // 06:15 08:30 12:00 18:00 21:30
+    const q = clamp(p, 0, 1) * 4, j = Math.min(3, Math.floor(q));
+    const mins = Math.round(T[j] + (T[j + 1] - T[j]) * (q - j));
+    timeEl.textContent = String(Math.floor(mins / 60)).padStart(2, "0") + ":" + String(mins % 60).padStart(2, "0");
+    phaseEl.textContent = ["dawn", "morning", "day", "evening", "night"][Math.round(clamp(p, 0, 1) * 4)];
+
+    ctx.clearRect(0, 0, W, H);
+    const narrow = W > H * 1.6;
+    const horizon = H * (narrow ? 0.8 : 0.74);
+    const s = clamp(W / 30, 9, 22);           // horizon dot spacing
+    const Rs = Math.min(W, H) * (narrow ? 0.2 : 0.15);
+    const top = narrow ? H * 0.42 : H * 0.2;
+
+    // stars: before dawn and after dusk
+    const night = Math.max(1 - smooth(clamp(p / 0.1, 0, 1)), smooth(clamp((p - 0.8) / 0.14, 0, 1)));
+    if (night > 0.01) {
+      ctx.fillStyle = css(ink);
+      ctx.globalAlpha = 0.55 * night;
+      for (const [x, y, r] of stars) if (y < horizon - s) dot(x, y, r);
+      ctx.globalAlpha = 1;
+    }
+
+    ctx.save();
+    ctx.beginPath(); ctx.rect(0, 0, W, horizon - s * 0.6); ctx.clip();
+
+    // the sun on its arc, left to right, rising from and sinking below the horizon
+    const u = clamp(p / 0.82, 0, 1);
+    const base = horizon + Rs * 0.5;
+    const sx = W * (0.33 + 0.34 * u);
+    const sy = base - (base - top) * Math.sin(Math.PI * u) + Rs * 1.8 * smooth(clamp((p - 0.8) / 0.1, 0, 1));
+    ctx.fillStyle = css(sun);
+    halftone(sx, sy, Rs, Rs / 6, 0.46);
+    ctx.fillStyle = css(ink);
+    for (let k = 0; k < 7; k++) {
+      const a = Math.PI + (k / 6) * Math.PI;
+      for (const f of [1.32, 1.56]) dot(sx + Math.cos(a) * Rs * f, sy + Math.sin(a) * Rs * f, Rs * 0.07);
+    }
+
+    // the crescent rises when the sun has gone
+    const v = clamp((p - 0.8) / 0.18, 0, 1);
+    if (v > 0) {
+      const Rc = Rs * 0.8, cx = W * 0.6;
+      const cy = horizon + Rc * 1.2 - (horizon + Rc * 1.2 - (top + Rs * 0.4)) * smooth(v);
+      ctx.fillStyle = css(ink);
+      halftone(cx, cy, Rc, Rc / 6, 0.42, (x, y) => Math.hypot(x - Rc * 0.45, y + Rc * 0.2) < Rc * 0.86);
+    }
+    ctx.restore();
+
+    // trees: halftone crowns on thin stems
+    ctx.fillStyle = css(ink);
+    ctx.strokeStyle = css(ink);
+    ctx.lineWidth = 1.5;
+    const trees = narrow ? [[0.05, 1], [0.12, 1.35], [0.88, 1.2], [0.95, 0.9]] : [[0.06, 1], [0.13, 1.4], [0.88, 1.25], [0.95, 0.85]];
+    for (const [fx, k] of trees) {
+      const R = s * 1.15 * k, x = W * fx, cy = horizon - s * 0.6 - R * 2.1;
+      ctx.beginPath(); ctx.moveTo(x, cy + R * 0.6); ctx.lineTo(x, horizon - s * 0.4); ctx.stroke();
+      halftone(x, cy, R, R / 3.4, 0.36);
+    }
+
+    // the dotted horizon, and a shorter, finer row under it (as in the app icon)
+    for (let x = s / 2; x < W; x += s) dot(x, horizon, s * 0.2);
+    const s2 = s * 1.2;
+    for (let x = W * 0.3; x < W * 0.7; x += s2) dot(x, horizon + s * 1.4, s * 0.12);
+  }
+
+  function progress() {
+    const max = document.documentElement.scrollHeight - innerHeight;
+    return max > 0 ? scrollY / max : 0;
+  }
+
+  let queued = false;
+  const frame = () => { queued = false; draw(reduced ? 0.3 : progress()); };
+  const ask = () => { if (!queued) { queued = true; requestAnimationFrame(frame); } };
+
+  size(); frame();
+  addEventListener("resize", () => { size(); ask(); });
+  if (!reduced) addEventListener("scroll", ask, { passive: true });
+
+  // fill each moment's dot once it has been read
+  const io = new IntersectionObserver(es => es.forEach(e => {
+    if (e.isIntersecting || e.boundingClientRect.top < 0) e.target.classList.add("done");
+  }), { rootMargin: "0px 0px -45% 0px" });
+  document.querySelectorAll(".routine li").forEach(li => io.observe(li));
+})();
+</script>
 </body>
 </html>
