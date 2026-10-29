@@ -1,0 +1,165 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Understudy</title>
+<meta name="description" content="Watch a person do a task once, ask what the camera could not see, and rehearse it on a simulated robot arm, on Earth and in orbit.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400;600&display=swap">
+<link rel="stylesheet" href="../style.css">
+<style>:root { --accent: #6a4cf5; }</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="top">
+    <a href="../">Projects by Gibril Bachouchi</a>
+    <nav><a href="./" aria-current="page">Understudy</a><a href="../thumb/">Thumb</a><a href="../more/">MORE</a></nav>
+  </header>
+
+  <div class="hero">
+    <span class="eyebrow"><span class="dot"></span>Physical AI · Oct 23-30, 2026</span>
+    <h1>Understudy</h1>
+    <p class="lede">Watch a person do a task once. Ask them what the camera could not see. Rehearse it on a simulated robot, on Earth and in orbit, and fix what fails.</p>
+    <div class="actions">
+      <a class="btn primary" href="https://understudy-rose.vercel.app">Open the live demo</a>
+      <a class="btn" href="https://youtu.be/G0QQybVRwtQ">Watch the video (2:57)</a>
+      <a class="btn" href="https://github.com/gibouu/understudy">Source</a>
+    </div>
+    <div class="meta">
+      <div><b>Built for</b>Nebius x NVIDIA Global AI Hackathon, Physical AI track</div>
+      <div><b>Models</b>NVIDIA Nemotron on Nebius Token Factory</div>
+      <div><b>Robot</b>SO-101 arm, simulated in MuJoCo</div>
+    </div>
+  </div>
+
+  <section>
+    <h2>Why</h2>
+    <p class="big">Teaching a robot is expensive, and nobody asks the person who did the task what mattered.</p>
+    <p>On a space station every crew hour is scarce: NASA prices one hour of ISS crew time at $130,000 for commercial activities. The robots meant to take over routine crew work need a clear task, a rehearsed program and labelled data. NASA already films crew procedures all the time. Understudy turns one such clip into the first two, and rehearses the result in orbit, where a released object drifts instead of resting. An understudy learns a role by watching the lead, then rehearses it on stage. This does that for robots.</p>
+  </section>
+
+  <section>
+    <h2>How it works</h2>
+    <ol class="steps">
+      <li><b>Watch</b><span>The clip stays in the browser. Only a 480 px, 4 fps proxy goes to the model. For a gesture, MediaPipe traces the hand.</span></li>
+      <li><b>Label</b><span>A vision model turns the proxy into a task spec: timed steps, objects with size and symmetry, and targets.</span></li>
+      <li><b>Ask</b><span>A second model writes the robot program. Every number it would have to guess becomes a question for the person.</span></li>
+      <li><b>Rehearse</b><span>A simulated SO-101 arm runs the answered program in the browser, under Earth gravity and at 0 g.</span></li>
+      <li><b>Repair</b><span>When a rehearsal fails, the simulator's note goes back to the model, which patches the program, up to five times.</span></li>
+      <li><b>Export</b><span>The passing rollouts download as a LeRobot v2.1 skeleton, with a quality report that says what it is and is not.</span></li>
+    </ol>
+  </section>
+
+  <section>
+    <h2>Architecture</h2>
+    <div class="figure">
+      <svg viewBox="0 0 960 400" role="img" aria-labelledby="arch-t">
+        <title id="arch-t">Understudy architecture: the browser runs the video proxy and the MuJoCo rehearsal; stateless Vercel routes call Nemotron models on Nebius Token Factory and Tavily.</title>
+        <defs>
+          <marker id="head" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path class="mh" d="M0 0L10 5L0 10z"/></marker>
+          <marker id="headA" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path class="mha" d="M0 0L10 5L0 10z"/></marker>
+        </defs>
+
+        <rect class="zone" x="20" y="24" width="420" height="356" rx="16"/>
+        <text class="z" x="40" y="52">Browser · Next.js 16</text>
+        <rect class="box" x="44" y="72" width="170" height="64" rx="10"/>
+        <text class="t" x="60" y="99">Phone clip</text><text class="s" x="60" y="119">one person, one task</text>
+        <rect class="box" x="246" y="72" width="170" height="64" rx="10"/>
+        <text class="t" x="262" y="99">Watch</text><text class="s" x="262" y="119">480 px proxy · MediaPipe</text>
+        <path class="arrow" d="M214 104H244"/>
+
+        <rect class="hot" x="44" y="190" width="372" height="86" rx="10"/>
+        <text class="w" x="60" y="218">Rehearse · Web Worker</text>
+        <text class="ws" x="60" y="240">MuJoCo WebAssembly · SO-101 arm</text>
+        <text class="ws" x="60" y="260">Earth 1 g, then orbit 0 g</text>
+
+        <rect class="box" x="44" y="306" width="372" height="56" rx="10"/>
+        <text class="t" x="60" y="330">Export</text><text class="s" x="60" y="349">LeRobot v2.1 skeleton, built in the browser</text>
+        <path class="arrow" d="M230 276V304"/>
+
+        <rect class="zone" x="476" y="24" width="228" height="356" rx="16"/>
+        <text class="z" x="496" y="52">Vercel routes</text>
+        <rect class="box" x="496" y="72" width="188" height="56" rx="10"/>
+        <text class="t" x="512" y="96">label</text><text class="s" x="512" y="115">what the model saw</text>
+        <rect class="box" x="496" y="140" width="188" height="56" rx="10"/>
+        <text class="t" x="512" y="164">compile</text><text class="s" x="512" y="183">program + questions</text>
+        <rect class="box" x="496" y="208" width="188" height="56" rx="10"/>
+        <text class="t" x="512" y="232">notes</text><text class="s" x="512" y="251">one patch per failure</text>
+        <rect class="box" x="496" y="276" width="188" height="56" rx="10"/>
+        <text class="t" x="512" y="300">ground · variants</text><text class="s" x="512" y="319">web advice, similar tasks</text>
+
+        <path class="arrow" d="M416 104C450 104 460 100 494 100"/>
+        <path class="arrow" d="M496 176C460 176 450 200 418 206"/>
+        <text class="lbl" x="424" y="168">program</text>
+        <path class="loop" d="M418 238C450 238 462 232 494 232"/>
+        <path class="loop" d="M494 250C462 250 450 258 420 258"/>
+        <text class="lbl" x="414" y="182" text-anchor="end">fails → note → patch, up to 5</text>
+
+        <rect class="hot" x="740" y="72" width="200" height="192" rx="10"/>
+        <text class="w" x="756" y="100">Nebius Token Factory</text>
+        <text class="ws" x="756" y="130">Nemotron 3.5 Super VL</text>
+        <text class="ws" x="756" y="150">watches and labels, patches</text>
+        <text class="ws" x="756" y="180">Nemotron 3.5 Lightning</text>
+        <text class="ws" x="756" y="200">compiles after every answer</text>
+        <text class="ws" x="756" y="230">Nemotron 3 Ultra</text>
+        <text class="ws" x="756" y="250">takes a stuck patch loop</text>
+        <path class="arrow" d="M684 100H738"/>
+        <path class="arrow" d="M684 168H738"/>
+        <path class="arrow" d="M684 236H738"/>
+
+        <rect class="box" x="740" y="276" width="200" height="56" rx="10"/>
+        <text class="t" x="756" y="300">Tavily</text><text class="s" x="756" y="319">search + extract</text>
+        <path class="arrow" d="M684 304H738"/>
+      </svg>
+    </div>
+    <p class="caption">The routes are stateless and replayable: without a key, or when Token Factory stops listing a model, every step answers from its recording and says why.</p>
+  </section>
+
+  <section>
+    <h2>Measured</h2>
+    <div class="stats">
+      <div class="stat"><div class="n">$0.0007</div><div class="d">to $0.0059 for a whole recorded session in the space showcase, 1 to 7 model calls</div></div>
+      <div class="stat"><div class="n">94%</div><div class="d">of solvable failing rehearsals fixed from the simulator's notes alone, within 5 patches</div></div>
+      <div class="stat"><div class="n">$0.0024</div><div class="d">per fixed case on the bench harness</div></div>
+      <div class="stat"><div class="n">86%</div><div class="d">of runs failed by a naive, human-like program before any repair</div></div>
+    </div>
+    <p class="note">Bench numbers come from small probe programs (insert, place, pour, carry) at Earth, Mars, Moon and orbit gravity, measured in the repository's harness.</p>
+  </section>
+
+  <section>
+    <h2>What it proves, and what it does not</h2>
+    <div class="cols">
+      <div>
+        <h3>Proves</h3>
+        <ul>
+          <li>The clarified task can be executed by a scripted SO-101 program, on Earth and in orbit</li>
+          <li>Its success criteria can be computed by a simulator</li>
+          <li>A model can repair a failing program from text notes, cheaply</li>
+        </ul>
+      </div>
+      <div>
+        <h3>Does not prove</h3>
+        <ul>
+          <li>That a learned policy would succeed, or that a real grasp holds</li>
+          <li>Orbit is rigid-body physics at 0 g: no air currents, tethers or flight rules</li>
+          <li>The export is format-valid, not training data</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <h2>Stack</h2>
+    <ul class="chips">
+      <li>Next.js 16</li><li>Vercel</li><li>MuJoCo WebAssembly</li><li>Web Workers</li><li>MediaPipe</li><li>NVIDIA Nemotron</li><li>Nebius Token Factory</li><li>Tavily</li><li>LeRobot v2.1</li><li>NASA public-domain ISS footage</li>
+    </ul>
+  </section>
+
+  <footer>
+    <span>Gibril Bachouchi · <a href="https://www.askgib.com/projects">askgib.com/projects</a></span>
+    <span>Next: <a href="../thumb/">Thumb →</a></span>
+  </footer>
+</div>
+</body>
+</html>

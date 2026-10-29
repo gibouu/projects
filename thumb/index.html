@@ -1,0 +1,156 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Thumb</title>
+<meta name="description" content="A native iPhone agent that works through websites in your own logged-in sessions, learns each site, and makes the phone call when a website isn't enough.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400;600&display=swap">
+<link rel="stylesheet" href="../style.css">
+<style>:root { --accent: #e5543b; }</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="top">
+    <a href="../">Projects by Gibril Bachouchi</a>
+    <nav><a href="../understudy/">Understudy</a><a href="./" aria-current="page">Thumb</a><a href="../more/">MORE</a></nav>
+  </header>
+
+  <div class="hero">
+    <span class="eyebrow"><span class="dot"></span>AI agent · Oct 22, 2026</span>
+    <h1>Thumb</h1>
+    <p class="lede">Your phone, on autopilot. Thumb taps through your web tasks while you sit on the train, learns each site, and makes the call when a website can't help.</p>
+    <div class="actions">
+      <a class="btn primary" href="https://gibouu.github.io/thumb/">Try the click-through demo</a>
+    </div>
+    <div class="meta">
+      <div><b>Built for</b>Future Founders: Data-Centric Agents, Aiven x ElevenLabs</div>
+      <div><b>Built in</b>one day</div>
+      <div><b>Runs on</b>a native iPhone app + an agent API on Aiven</div>
+    </div>
+  </div>
+
+  <section>
+    <h2>The idea</h2>
+    <p class="big">The first time is slow and costs a model. Every time after should be nearly free.</p>
+    <p>Thumb runs websites inside its own browser, in your logged-in sessions, and works through them one action at a time. It reads the page directly, its visible text and every button, link and field, instead of guessing from screenshots. Because it owns the browser it sees every action and its result, and that trace is what it learns from: a run that ends on a real receipt becomes the route for that site, and the next run replays it.</p>
+  </section>
+
+  <section>
+    <h2>What it does</h2>
+    <ol class="steps">
+      <li><b>Flat hunting</b><span>Reads every listing site, removes duplicates, scores each flat against your profile and applies to the ones you approve.</span></li>
+      <li><b>Job applications</b><span>Says in one line whether a job fits, then fills the whole multi-step application.</span></li>
+      <li><b>The weekly website</b><span>Watches for the moment booking opens on an old club website and books a place.</span></li>
+      <li><b>Teach Thumb</b><span>Do a task once in Thumb's browser. It records the steps, never passwords, and turns them into a tile it replays.</span></li>
+      <li><b>Call the landlord</b><span>An ElevenLabs voice agent says it is your AI assistant, asks your questions and files the answers.</span></li>
+      <li><b>Self-repair</b><span>When a site changes, the model takes over only the changed steps, and the route is rewritten.</span></li>
+    </ol>
+  </section>
+
+  <section>
+    <h2>Architecture</h2>
+    <div class="figure">
+      <svg viewBox="0 0 960 400" role="img" aria-labelledby="arch-t">
+        <title id="arch-t">Thumb architecture: the iPhone app injects a frame agent into its web view, which talks to an agent API on Aiven Runtime backed by PostgreSQL, ClickHouse and Valkey, with gpt-5-mini choosing actions and ElevenLabs placing calls.</title>
+        <defs>
+          <marker id="head" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path class="mh" d="M0 0L10 5L0 10z"/></marker>
+          <marker id="headA" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path class="mha" d="M0 0L10 5L0 10z"/></marker>
+        </defs>
+
+        <rect class="box" x="20" y="148" width="150" height="64" rx="10"/>
+        <text class="t" x="36" y="175">Websites</text><text class="s" x="36" y="195">listings, jobs, clubs</text>
+
+        <rect class="zone" x="200" y="24" width="280" height="350" rx="16"/>
+        <text class="z" x="220" y="52">iPhone · SwiftUI</text>
+        <rect class="box" x="220" y="68" width="240" height="56" rx="10"/>
+        <text class="t" x="236" y="92">Home tiles</text><text class="s" x="236" y="111">flats · jobs · booking · teach · memory</text>
+        <rect class="box" x="220" y="148" width="240" height="56" rx="10"/>
+        <text class="t" x="236" y="172">WKWebView</text><text class="s" x="236" y="191">your logged-in sessions</text>
+        <rect class="hot" x="220" y="224" width="240" height="72" rx="10"/>
+        <text class="w" x="236" y="250">FrameAgent.js</text>
+        <text class="ws" x="236" y="270">injected in every frame</text>
+        <text class="ws" x="236" y="287">snapshot · act · recorder</text>
+        <rect class="box" x="220" y="312" width="240" height="48" rx="10"/>
+        <text class="t" x="236" y="341">Call screen</text>
+
+        <path class="arrow" d="M172 180H218" marker-start="url(#head)"/>
+        <path class="arrow" d="M340 204V222"/>
+
+        <rect class="zone" x="520" y="24" width="420" height="262" rx="16"/>
+        <text class="z" x="540" y="52">Aiven</text>
+        <rect class="hot" x="540" y="68" width="180" height="128" rx="10"/>
+        <text class="w" x="556" y="94">Agent API</text>
+        <text class="ws" x="556" y="114">Node 24 on Aiven Runtime</text>
+        <text class="ws" x="556" y="142">warm: replay the route</text>
+        <text class="ws" x="556" y="160">cold: ask the model</text>
+        <text class="ws" x="556" y="178">for one action</text>
+
+        <rect class="box" x="750" y="68" width="170" height="56" rx="10"/>
+        <text class="t" x="766" y="92">PostgreSQL</text><text class="s" x="766" y="111">profile · runs · routes</text>
+        <rect class="box" x="750" y="140" width="170" height="56" rx="10"/>
+        <text class="t" x="766" y="164">ClickHouse</text><text class="s" x="766" y="183">every step · learning curve</text>
+        <rect class="box" x="750" y="212" width="170" height="56" rx="10"/>
+        <text class="t" x="766" y="236">Valkey</text><text class="s" x="766" y="255">live stream to the phone</text>
+
+        <path class="arrow" d="M720 96H748"/>
+        <path class="arrow" d="M835 124V138"/>
+        <path class="arrow" d="M720 170C735 200 735 240 748 240"/>
+
+        <path class="loop" d="M462 246C500 246 500 130 538 130"/>
+        <path class="loop" d="M538 176C505 176 505 276 462 276"/>
+        <text class="lbl" x="476" y="120">snapshot</text>
+        <text class="lbl" x="476" y="300">next action</text>
+
+        <rect class="box" x="540" y="312" width="180" height="56" rx="10"/>
+        <text class="t" x="556" y="336">OpenAI gpt-5-mini</text><text class="s" x="556" y="355">one action at a time</text>
+        <path class="arrow" d="M630 196V310"/>
+
+        <rect class="box" x="750" y="312" width="170" height="56" rx="10"/>
+        <text class="t" x="766" y="336">ElevenLabs</text><text class="s" x="766" y="355">voice agent</text>
+        <path class="arrow" d="M460 344H490V388H835V370"/>
+      </svg>
+    </div>
+    <p class="caption">One action per step (click, type, select, navigate, scroll, extract, done or fail), chosen by a forced function call. Anything that sends something waits for your approval, and an application only counts when the page shows a receipt.</p>
+  </section>
+
+  <section>
+    <h2>Measured</h2>
+    <div class="stats">
+      <div class="stat"><div class="n">1 call</div><div class="d">for a repeat flat application on a learned route, against 7 to 8 the first time</div></div>
+      <div class="stat"><div class="n">−97%</div><div class="d">tokens per application once the route is learned: about 330 instead of 9,000 to 12,000</div></div>
+      <div class="stat"><div class="n">16 / 16</div><div class="d">repeat applications confirmed by a receipt on the page</div></div>
+      <div class="stat"><div class="n">3.3 s</div><div class="d">from booking opening to slot 1 of 20, with zero model calls</div></div>
+    </div>
+    <p class="note">Runs of 22 October 2026 with real gpt-5-mini calls on Aiven. After a deliberate form redesign the route repaired itself: 7 → 1 → 5 → 1 model calls. The listing demo sites were built for the demo with made-up people; real-site runs were read-only or approved.</p>
+  </section>
+
+  <section>
+    <h2>Data on Aiven</h2>
+    <div class="cols">
+      <div>
+        <h3>PostgreSQL, the memory</h3>
+        <ul><li>Profile and trusted tasks, listings with freshness, runs, every step with its source and tokens</li><li>Learned routes, with drift and repairs, and taught skills</li></ul>
+      </div>
+      <div>
+        <h3>ClickHouse and Valkey</h3>
+        <ul><li>ClickHouse holds every step, synced every 10 seconds, and computes the learning curve</li><li>Valkey streams new listings and openings: the phone reacts within about 2 seconds</li></ul>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <h2>Stack</h2>
+    <ul class="chips">
+      <li>SwiftUI</li><li>WKWebView</li><li>Node 24 + Express</li><li>Aiven Runtime</li><li>Aiven for PostgreSQL</li><li>Aiven for ClickHouse</li><li>Aiven for Valkey</li><li>OpenAI gpt-5-mini</li><li>ElevenLabs</li>
+    </ul>
+  </section>
+
+  <footer>
+    <span>Gibril Bachouchi · <a href="https://www.askgib.com/projects">askgib.com/projects</a></span>
+    <span>Next: <a href="../more/">MORE →</a></span>
+  </footer>
+</div>
+</body>
+</html>

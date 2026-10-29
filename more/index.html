@@ -1,0 +1,171 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>MORE</title>
+<meta name="description" content="Morning Operator: a native iPhone prototype that learns from what you choose to share, proposes one daily routine, and follows it once you approve.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400;600&display=swap">
+<link rel="stylesheet" href="../style.css">
+<style>
+  :root { --accent: #b4532a; --bg: #f4efe4; }
+  @media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) { --accent: #e07a4c; --bg: #14120f; } }
+  .zone2 { fill: none; stroke: var(--muted); stroke-width: 1.5; stroke-dasharray: 3 6; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="top">
+    <a href="../">Projects by Gibril Bachouchi</a>
+    <nav><a href="../understudy/">Understudy</a><a href="../thumb/">Thumb</a><a href="./" aria-current="page">MORE</a></nav>
+  </header>
+
+  <div class="hero">
+    <span class="eyebrow"><span class="dot"></span>iOS prototype · October 2026</span>
+    <h1>MORE</h1>
+    <p class="lede">Less phone handling. More of the morning you enjoy. Morning Operator learns from what you choose to share, proposes one routine, and follows it once you approve.</p>
+    <div class="meta">
+      <div><b>Platform</b>Native iPhone app, iOS 26</div>
+      <div><b>Models</b>On the device, Apple models</div>
+      <div><b>Accounts</b>None: no MORE account, no backend</div>
+    </div>
+  </div>
+
+  <section>
+    <h2>The idea</h2>
+    <p class="big">Most mornings start by picking up the phone and losing twenty minutes to it.</p>
+    <p>MORE turns the evidence you explicitly share about your mornings into one routine you review and approve, then walks you through it: a short spoken opening with the weather and your calendar, your mail, one article, one activity you chose, and a recap at the end. Nothing runs until you approve it, and the learning happens on the phone.</p>
+  </section>
+
+  <section>
+    <h2>A morning, step by step</h2>
+    <ol class="steps">
+      <li><b>Choose and learn</b><span>Pick the sources it may learn from: Screen Time, a screen recording you make or import, and your apps.</span></li>
+      <li><b>Review and edit</b><span>It proposes a routine and cites the dated mornings it came from. Keep, drop or resize each moment.</span></li>
+      <li><b>Approve once</b><span>Approving saves the routine and starts nothing. The same routine is reused every day.</span></li>
+      <li><b>Start a morning</b><span>A concise opening with weather and calendar, then unread Gmail, read inside the app.</span></li>
+      <li><b>One activity</b><span>Open the activity you chose with a timer, and +2 or Next from the Lock Screen and Dynamic Island.</span></li>
+      <li><b>Finish and review</b><span>A recap of what you did, skipped or stopped, saved on the phone, with room for your thoughts.</span></li>
+    </ol>
+  </section>
+
+  <section>
+    <h2>Architecture</h2>
+    <div class="figure">
+      <svg viewBox="0 0 960 430" role="img" aria-labelledby="arch-t">
+        <title id="arch-t">MORE architecture: shared sources feed an on-device learning step, which proposes a plan you approve; the approved plan runs the morning and saves a recap, all on the iPhone. Private Cloud Compute is a future optional route.</title>
+        <defs>
+          <marker id="head" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path class="mh" d="M0 0L10 5L0 10z"/></marker>
+          <marker id="headA" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path class="mha" d="M0 0L10 5L0 10z"/></marker>
+        </defs>
+
+        <rect class="zone" x="20" y="24" width="920" height="344" rx="16"/>
+        <text class="z" x="40" y="52">On your iPhone · no MORE server</text>
+
+        <rect class="box" x="40" y="72" width="190" height="48" rx="10"/>
+        <text class="t" x="56" y="93">Screen Time</text><text class="s" x="56" y="110">aggregate, with your consent</text>
+        <rect class="box" x="40" y="128" width="190" height="48" rx="10"/>
+        <text class="t" x="56" y="149">Screen recording</text><text class="s" x="56" y="166">5-30 min, up to 24 frames</text>
+        <rect class="box" x="40" y="184" width="190" height="48" rx="10"/>
+        <text class="t" x="56" y="205">Gmail</text><text class="s" x="56" y="222">read-only, never sends</text>
+        <rect class="box" x="40" y="240" width="190" height="48" rx="10"/>
+        <text class="t" x="56" y="261">Calendar · Weather</text><text class="s" x="56" y="278">for the opening</text>
+        <rect class="box" x="40" y="296" width="190" height="48" rx="10"/>
+        <text class="t" x="56" y="317">Sleep</text><text class="s" x="56" y="334">HealthKit, off by default</text>
+
+        <path class="arrow" d="M230 96C250 96 250 190 268 196"/>
+        <path class="arrow" d="M230 152C250 152 250 200 268 204"/>
+        <path class="arrow" d="M230 208H268"/>
+        <path class="arrow" d="M230 264C250 264 250 216 268 212"/>
+        <path class="arrow" d="M230 320C250 320 250 226 268 220"/>
+
+        <rect class="hot" x="270" y="146" width="180" height="124" rx="10"/>
+        <text class="w" x="286" y="174">Learn</text>
+        <text class="ws" x="286" y="198">local extraction</text>
+        <text class="ws" x="286" y="216">on-device Apple model</text>
+        <text class="ws" x="286" y="244">a cited proposal</text>
+        <text class="ws" x="286" y="260">from dated mornings</text>
+
+        <path class="arrow" d="M450 208H488"/>
+
+        <rect class="box" x="490" y="146" width="160" height="124" rx="10"/>
+        <text class="t" x="506" y="174">Plan</text>
+        <text class="s" x="506" y="198">versioned draft</text>
+        <text class="s" x="506" y="216">you edit it</text>
+        <text class="s" x="506" y="244">you approve it once</text>
+        <text class="s" x="506" y="260">reused every day</text>
+
+        <path class="loop" d="M650 208C670 208 670 96 688 96"/>
+        <path class="arrow" d="M650 208C670 208 670 152 688 152"/>
+        <path class="arrow" d="M650 208H688"/>
+        <path class="arrow" d="M650 208C670 208 670 264 688 264"/>
+        <text class="lbl" x="616" y="132">Start</text>
+
+        <rect class="box" x="690" y="72" width="230" height="48" rx="10"/>
+        <text class="t" x="706" y="93">Opening</text><text class="s" x="706" y="110">weather and calendar, spoken</text>
+        <rect class="box" x="690" y="128" width="230" height="48" rx="10"/>
+        <text class="t" x="706" y="149">Gmail reader</text><text class="s" x="706" y="166">plain text, no remote images</text>
+        <rect class="box" x="690" y="184" width="230" height="48" rx="10"/>
+        <text class="t" x="706" y="205">One feed or article</text><text class="s" x="706" y="222">a visible website you control</text>
+        <rect class="box" x="690" y="240" width="230" height="48" rx="10"/>
+        <text class="t" x="706" y="261">Activity + timer</text><text class="s" x="706" y="278">+2 and Next on the Lock Screen</text>
+        <rect class="hot" x="690" y="296" width="230" height="48" rx="10"/>
+        <text class="w" x="706" y="317">Recap</text><text class="ws" x="706" y="334">saved on the phone</text>
+        <path class="arrow" d="M805 288V294"/>
+
+        <rect class="zone2" x="270" y="384" width="380" height="36" rx="10"/>
+        <text class="s" x="286" y="407">Private Cloud Compute: future, optional, only by explicit choice</text>
+        <path class="arrow" d="M360 270V382" stroke-dasharray="3 5"/>
+      </svg>
+    </div>
+    <p class="caption">Eight modules in one Swift app with a widget: experience shell, connections, evidence and learning, the approved plan, the morning run, briefing, review and privacy, and delivery. Raw recordings stay local, and there is no silent remote fallback.</p>
+  </section>
+
+  <section>
+    <h2>Where it stands</h2>
+    <div class="stats">
+      <div class="stat"><div class="n">0</div><div class="d">accounts or servers of its own: the routine, the evidence and the recap live on the phone</div></div>
+      <div class="stat"><div class="n">1,269</div><div class="d">package checks passing in the Gmail implementation run</div></div>
+      <div class="stat"><div class="n">24</div><div class="d">frames at most sampled from an imported recording, up to 31 minutes</div></div>
+      <div class="stat"><div class="n">1</div><div class="d">routine, approved once and reused every morning</div></div>
+    </div>
+    <p class="note">Installed on the owner's iPhone, with real Google sign-in, unread count, reading and approval of a Screen Time suggestion confirmed. A complete ordinary morning, replies, alarms and Siri still need their own checks on the phone.</p>
+  </section>
+
+  <section>
+    <h2>Privacy by design</h2>
+    <div class="cols">
+      <div>
+        <h3>What it does</h3>
+        <ul>
+          <li>Learns only from what you explicitly share, and shows which dates it used</li>
+          <li>Runs extraction and the model on the phone</li>
+          <li>Lets you forget everything it learned</li>
+        </ul>
+      </div>
+      <div>
+        <h3>What it never does</h3>
+        <ul>
+          <li>Send mail or create remote drafts</li>
+          <li>Start a morning, or change the routine, without you</li>
+          <li>Claim a habit the evidence does not show: a missing day is not a zero</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <h2>Stack</h2>
+    <ul class="chips">
+      <li>Swift</li><li>SwiftUI</li><li>iOS 26</li><li>Foundation Models</li><li>Vision</li><li>FamilyControls · DeviceActivity</li><li>ActivityKit</li><li>WeatherKit</li><li>EventKit</li><li>HealthKit</li><li>App Intents</li><li>Gmail API, read-only</li>
+    </ul>
+  </section>
+
+  <footer>
+    <span>Gibril Bachouchi · <a href="https://www.askgib.com/projects">askgib.com/projects</a></span>
+    <span>Next: <a href="../understudy/">Understudy →</a></span>
+  </footer>
+</div>
+</body>
+</html>
